@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Rabar Faruq Fatah</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --bg:#0a0a0f;
+    --surface:#12121a;
+    --card:#1a1a26;
+    --accent:#7c6fff;
+    --accent2:#ff6b6b;
+    --text:#f0eeff;
+    --muted:#8885a8;
+    --border:rgba(124,111,255,0.15);
+  }
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:16px;line-height:1.7;overflow-x:hidden}
+
+  /* NAV */
+  nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1.2rem 2rem;display:flex;justify-content:space-between;align-items:center;background:rgba(10,10,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+  .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;letter-spacing:0.02em;color:var(--accent)}
+  .nav-links{display:flex;gap:2rem;list-style:none}
+  .nav-links a{color:var(--muted);text-decoration:none;font-size:0.9rem;font-weight:500;transition:color 0.2s}
+  .nav-links a:hover{color:var(--text)}
+
+  /* HERO */
+  .hero{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:6rem 2rem 4rem;text-align:center;position:relative}
+  .hero-bg{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+  .hero-blob{position:absolute;border-radius:50%;filter:blur(90px);opacity:0.18}
+  .blob1{width:600px;height:600px;background:var(--accent);top:-100px;left:-100px}
+  .blob2{width:400px;height:400px;background:var(--accent2);bottom:-50px;right:-50px}
+  .hero-inner{position:relative;max-width:720px}
+  .hero-badge{display:inline-block;background:rgba(124,111,255,0.12);border:1px solid var(--border);padding:0.4rem 1rem;border-radius:999px;font-size:0.8rem;color:var(--accent);margin-bottom:1.5rem;letter-spacing:0.08em;text-transform:uppercase}
+  h1{font-family:'Syne',sans-serif;font-size:clamp(2.8rem,7vw,5rem);font-weight:800;line-height:1.05;margin-bottom:1rem}
+  h1 .name-line{display:block}
+  h1 .accent{color:var(--accent)}
+  .hero-sub{font-size:1.1rem;color:var(--muted);max-width:480px;margin:0 auto 2rem;font-weight:300}
+  .hero-cta{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
+  .btn{padding:0.75rem 1.8rem;border-radius:999px;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:500;cursor:pointer;text-decoration:none;transition:all 0.2s}
+  .btn-primary{background:var(--accent);color:#fff;border:none}
+  .btn-primary:hover{background:#9580ff;transform:translateY(-2px)}
+  .btn-outline{background:transparent;color:var(--text);border:1px solid var(--border)}
+  .btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+  .scroll-hint{margin-top:4rem;color:var(--muted);font-size:0.8rem;letter-spacing:0.1em;text-transform:uppercase;animation:bounce 2s infinite}
+  @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
+
+  /* SECTIONS */
+  section{padding:5rem 2rem}
+  .container{max-width:900px;margin:0 auto}
+  .section-label{font-size:0.75rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem;font-weight:500}
+  .section-title{font-family:'Syne',sans-serif;font-size:clamp(1.8rem,4vw,2.8rem);font-weight:700;margin-bottom:3rem;line-height:1.2}
+  .divider{height:1px;background:var(--border);margin:0 auto}
+
+  /* ABOUT */
+  .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:start}
+  .about-text p{color:var(--muted);margin-bottom:1rem;font-weight:300}
+  .about-text p strong{color:var(--text);font-weight:500}
+  .about-stats{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+  .stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.2rem;text-align:center}
+  .stat-number{font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:var(--accent)}
+  .stat-label{font-size:0.8rem;color:var(--muted);margin-top:0.2rem}
+
+  /* SKILLS */
+  .skills-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem}
+  .skill-category{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.5rem}
+  .skill-cat-title{font-family:'Syne',sans-serif;font-weight:600;font-size:0.9rem;margin-bottom:1rem;color:var(--accent)}
+  .skill-tags{display:flex;flex-wrap:wrap;gap:0.5rem}
+  .skill-tag{background:rgba(124,111,255,0.08);border:1px solid rgba(124,111,255,0.2);color:var(--muted);padding:0.3rem 0.75rem;border-radius:999px;font-size:0.78rem;transition:all 0.2s}
+  .skill-tag:hover{background:rgba(124,111,255,0.18);color:var(--text)}
+
+  /* EXPERIENCE */
+  .timeline{position:relative;padding-left:2rem}
+  .timeline::before{content:'';position:absolute;left:0;top:0;bottom:0;width:1px;background:var(--border)}
+  .timeline-item{position:relative;margin-bottom:2.5rem;padding-left:1.5rem}
+  .timeline-dot{position:absolute;left:-2rem;top:0.4rem;width:10px;height:10px;border-radius:50%;background:var(--accent);border:2px solid var(--bg)}
+  .timeline-date{font-size:0.78rem;color:var(--accent);font-weight:500;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:0.3rem}
+  .timeline-title{font-family:'Syne',sans-serif;font-weight:700;font-size:1.05rem;margin-bottom:0.2rem}
+  .timeline-org{font-size:0.85rem;color:var(--muted);margin-bottom:0.6rem}
+  .timeline-desc{font-size:0.9rem;color:var(--muted);font-weight:300;line-height:1.6}
+
+  /* CERTIFICATIONS */
+  .certs-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.2rem}
+  .cert-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.4rem;position:relative;overflow:hidden;transition:border-color 0.2s}
+  .cert-card:hover{border-color:var(--accent)}
+  .cert-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--accent)}
+  .cert-date{font-size:0.75rem;color:var(--accent);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.4rem}
+  .cert-name{font-family:'Syne',sans-serif;font-weight:600;font-size:0.95rem;margin-bottom:0.2rem}
+  .cert-org{font-size:0.82rem;color:var(--muted)}
+  .cert-award{display:inline-block;background:rgba(255,107,107,0.12);border:1px solid rgba(255,107,107,0.25);color:#ff6b6b;font-size:0.72rem;padding:0.15rem 0.6rem;border-radius:999px;margin-top:0.4rem}
+
+  /* CONTACT */
+  .contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:start}
+  .contact-info p{color:var(--muted);font-weight:300;margin-bottom:1.5rem}
+  .contact-links{display:flex;flex-direction:column;gap:0.75rem}
+  .contact-link{display:flex;align-items:center;gap:0.75rem;color:var(--muted);text-decoration:none;font-size:0.9rem;transition:color 0.2s}
+  .contact-link:hover{color:var(--accent)}
+  .contact-icon{width:36px;height:36px;background:var(--card);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+  .contact-form{display:flex;flex-direction:column;gap:1rem}
+  .contact-form input,.contact-form textarea{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:0.85rem 1rem;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.9rem;outline:none;transition:border-color 0.2s;resize:vertical}
+  .contact-form input::placeholder,.contact-form textarea::placeholder{color:var(--muted)}
+  .contact-form input:focus,.contact-form textarea:focus{border-color:var(--accent)}
+  .contact-form textarea{min-height:120px}
+
+  /* FOOTER */
+  footer{text-align:center;padding:2rem;border-top:1px solid var(--border);color:var(--muted);font-size:0.82rem}
+
+  /* RESPONSIVE */
+  @media(max-width:640px){
+    .about-grid,.contact-grid{grid-template-columns:1fr}
+    .nav-links{display:none}
+    h1{font-size:2.4rem}
+  }
+
+  /* FADE IN */
+  .fade-in{opacity:0;transform:translateY(24px);transition:opacity 0.6s ease,transform 0.6s ease}
+  .fade-in.visible{opacity:1;transform:none}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">RF.</div>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#skills">Skills</a></li>
+    <li><a href="#experience">Experience</a></li>
+    <li><a href="#certifications">Certifications</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg">
+    <div class="hero-blob blob1"></div>
+    <div class="hero-blob blob2"></div>
+  </div>
+  <div class="hero-inner">
+    <div class="hero-badge">Available for opportunities</div>
+    <h1>
+      <span class="name-line">Rabar Faruq</span>
+      <span class="name-line accent">Fatah</span>
+    </h1>
+    <p class="hero-sub">Computer Science student · Developer · Team Leader · Based in Sulaymaniyah</p>
+    <div class="hero-cta">
+      <a href="#contact" class="btn btn-primary">Get in touch</a>
+      <a href="#skills" class="btn btn-outline">View my skills</a>
+    </div>
+    <p class="scroll-hint">↓ scroll</p>
+  </div>
+</section>
+
+<div class="divider container"></div>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="container fade-in">
+    <p class="section-label">About me</p>
+    <h2 class="section-title">Who I am</h2>
+    <div class="about-grid">
+      <div class="about-text">
+        <p>I'm a <strong>Computer Science student</strong> at Komar University of Science and Technology, passionate about technology, leadership, and building meaningful solutions.</p>
+        <p>I have hands-on experience in <strong>web development, IoT, cloud computing, and cybersecurity</strong>. I'm fluent in Kurdish and hold a <strong>B2 English certification</strong>.</p>
+        <p>Beyond coding, I've grown as a <strong>team manager</strong> at Komar Time — starting as an interviewer and rising through the ranks by building strong networks and delivering on my commitments.</p>
+      </div>
+      <div class="about-stats">
+        <div class="stat-card">
+          <div class="stat-number">4+</div>
+          <div class="stat-label">Years at Komar</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">6</div>
+          <div class="stat-label">Certifications</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">1st</div>
+          <div class="stat-label">University Day Prize</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">B2</div>
+          <div class="stat-label">English Level</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider container"></div>
+
+<!-- SKILLS -->
+<section id="skills">
+  <div class="container fade-in">
+    <p class="section-label">What I know</p>
+    <h2 class="section-title">Skills & Technologies</h2>
+    <div class="skills-grid">
+      <div class="skill-category">
+        <div class="skill-cat-title">💻 Development</div>
+        <div class="skill-tags">
+          <span class="skill-tag">Flutter</span>
+          <span class="skill-tag">C#</span>
+          <span class="skill-tag">C++</span>
+          <span class="skill-tag">Python</span>
+          <span class="skill-tag">Web Design</span>
+          <span class="skill-tag">Material-UI</span>
+          <span class="skill-tag">Git</span>
+          <span class="skill-tag">OOP</span>
+        </div>
+      </div>
+      <div class="skill-category">
+        <div class="skill-cat-title">🔧 Technical</div>
+        <div class="skill-tags">
+          <span class="skill-tag">Troubleshooting</span>
+          <span class="skill-tag">Hardware</span>
+          <span class="skill-tag">Arduino</span>
+          <span class="skill-tag">IoT</span>
+          <span class="skill-tag">Networking</span>
+          <span class="skill-tag">Cloud Computing</span>
+          <span class="skill-tag">Cybersecurity</span>
+          <span class="skill-tag">Remote Support</span>
+        </div>
+      </div>
+      <div class="skill-category">
+        <div class="skill-cat-title">🤝 Leadership</div>
+        <div class="skill-tags">
+          <span class="skill-tag">Team Management</span>
+          <span class="skill-tag">Team Leading</span>
+          <span class="skill-tag">Project Management</span>
+          <span class="skill-tag">Collaboration</span>
+          <span class="skill-tag">Communication</span>
+          <span class="skill-tag">Networking</span>
+        </div>
+      </div>
+      <div class="skill-category">
+        <div class="skill-cat-title">🧠 Personal</div>
+        <div class="skill-tags">
+          <span class="skill-tag">Critical Thinking</span>
+          <span class="skill-tag">Time Management</span>
+          <span class="skill-tag">Adaptability</span>
+          <span class="skill-tag">Decision-Making</span>
+          <span class="skill-tag">Conflict Resolution</span>
+          <span class="skill-tag">Problem Solving</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider container"></div>
+
+<!-- EXPERIENCE -->
+<section id="experience">
+  <div class="container fade-in">
+    <p class="section-label">My journey</p>
+    <h2 class="section-title">Experience</h2>
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-date">Dec 2021 – Present</div>
+        <div class="timeline-title">Team Manager → Team Leader → Interviewer</div>
+        <div class="timeline-org">Komar Time · Komar University</div>
+        <div class="timeline-desc">Started as an interviewer to grow communication and networking skills. Got promoted to team leader by consistently showing dedication and soft skills, then rose to team manager — overseeing operations, conducting high-profile interviews (including with Box Advertisement), and acting as a key problem solver.</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-date">Nov 2024</div>
+        <div class="timeline-title">1st Place — University Day</div>
+        <div class="timeline-org">Komar University · NavMind & Aspire AI</div>
+        <div class="timeline-desc">Awarded 1st place at the annual University Day competition, showcasing projects NavMind and Aspire AI — demonstrating strong innovation and technical skills.</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-date">2021 – Present</div>
+        <div class="timeline-title">Computer Science Student</div>
+        <div class="timeline-org">Komar University of Science and Technology</div>
+        <div class="timeline-desc">Pursuing a degree in Computer Science while actively engaging in academic clubs, research topics on technology and AI, and multiple certification programs.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider container"></div>
+
+<!-- CERTIFICATIONS -->
+<section id="certifications">
+  <div class="container fade-in">
+    <p class="section-label">Credentials</p>
+    <h2 class="section-title">Certifications</h2>
+    <div class="certs-grid">
+      <div class="cert-card">
+        <div class="cert-date">December 2022</div>
+        <div class="cert-name">B2 English Level</div>
+        <div class="cert-org">Center of Intensive English Programs · Komar University</div>
+      </div>
+      <div class="cert-card">
+        <div class="cert-date">April 2024</div>
+        <div class="cert-name">Flutter Bootcamp</div>
+        <div class="cert-org">Suly Innovation House · Space.krd</div>
+      </div>
+      <div class="cert-card">
+        <div class="cert-date">August 2024</div>
+        <div class="cert-name">Internet of Things (IoT)</div>
+        <div class="cert-org">Huawei ICT Academy · Komar University</div>
+      </div>
+      <div class="cert-card">
+        <div class="cert-date">September 2024</div>
+        <div class="cert-name">Cloud Computing</div>
+        <div class="cert-org">Huawei ICT Academy · Komar University</div>
+      </div>
+      <div class="cert-card">
+        <div class="cert-date">November 2024</div>
+        <div class="cert-name">University Day</div>
+        <div class="cert-org">Komar University · NavMind, Aspire AI</div>
+        <span class="cert-award">🏆 1st Place</span>
+      </div>
+      <div class="cert-card">
+        <div class="cert-date">April 2025</div>
+        <div class="cert-name">Cybersecurity Training</div>
+        <div class="cert-org">IQ Company · Komar University</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider container"></div>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="container fade-in">
+    <p class="section-label">Let's talk</p>
+    <h2 class="section-title">Get in touch</h2>
+    <div class="contact-grid">
+      <div class="contact-info">
+        <p>I'm always open to new opportunities, collaborations, or just a friendly conversation. Feel free to reach out!</p>
+        <div class="contact-links">
+          <a href="tel:+9647700383505" class="contact-link">
+            <div class="contact-icon">📞</div>
+            <span>(+964) 770 038 3505</span>
+          </a>
+          <a href="mailto:Rabar.faruqf21@komar.edu.iq" class="contact-link">
+            <div class="contact-icon">✉️</div>
+            <span>Rabar.faruqf21@komar.edu.iq</span>
+          </a>
+          <a href="https://www.linkedin.com/in/rabarfaruq" target="_blank" class="contact-link">
+            <div class="contact-icon">💼</div>
+            <span>LinkedIn Profile</span>
+          </a>
+          <div class="contact-link">
+            <div class="contact-icon">📍</div>
+            <span>Sulaymaniyah, Raprin, Dldar</span>
+          </div>
+        </div>
+      </div>
+      <div class="contact-form">
+        <input type="text" placeholder="Your name"/>
+        <input type="email" placeholder="Your email"/>
+        <textarea placeholder="Your message..."></textarea>
+        <button class="btn btn-primary" style="border:none;text-align:center">Send message</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>Designed & built by Rabar Faruq Fatah · Sulaymaniyah, Iraq · 2025</p>
+</footer>
+
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible') });
+  }, {threshold: 0.1});
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
