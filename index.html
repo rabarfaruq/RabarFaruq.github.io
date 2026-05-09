@@ -82,6 +82,22 @@
   .timeline-org{font-size:0.85rem;color:var(--muted);margin-bottom:0.6rem}
   .timeline-desc{font-size:0.9rem;color:var(--muted);font-weight:300;line-height:1.6}
 
+  /* PROJECTS */
+  .projects-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem}
+  .project-card{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;transition:transform 0.2s,border-color 0.2s}
+  .project-card:hover{transform:translateY(-4px);border-color:var(--accent)}
+  .project-preview{background:linear-gradient(135deg,#0d0d1a,#12122a);padding:2rem 1.5rem;display:flex;align-items:center;justify-content:center;min-height:140px;position:relative;overflow:hidden}
+  .project-preview-icon{font-size:3rem;z-index:1}
+  .project-preview::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 50%,rgba(124,111,255,0.15),transparent 70%)}
+  .project-preview-tags{position:absolute;bottom:0.75rem;right:0.75rem;display:flex;gap:0.4rem;flex-wrap:wrap;justify-content:flex-end}
+  .project-preview-tag{background:rgba(124,111,255,0.15);border:1px solid rgba(124,111,255,0.25);color:var(--accent);font-size:0.68rem;padding:0.15rem 0.5rem;border-radius:999px}
+  .project-body{padding:1.4rem}
+  .project-title{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;margin-bottom:0.5rem}
+  .project-desc{font-size:0.85rem;color:var(--muted);line-height:1.6;margin-bottom:1rem;font-weight:300}
+  .project-links{display:flex;gap:0.75rem}
+  .project-link{font-size:0.8rem;color:var(--accent);text-decoration:none;border:1px solid var(--border);padding:0.3rem 0.85rem;border-radius:999px;transition:all 0.2s}
+  .project-link:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+
   /* CERTIFICATIONS */
   .certs-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.2rem}
   .cert-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.4rem;position:relative;overflow:hidden;transition:border-color 0.2s}
@@ -128,6 +144,7 @@
     <li><a href="#about">About</a></li>
     <li><a href="#skills">Skills</a></li>
     <li><a href="#experience">Experience</a></li>
+    <li><a href="#projects">Projects</a></li>
     <li><a href="#certifications">Certifications</a></li>
     <li><a href="#contact">Contact</a></li>
   </ul>
@@ -268,8 +285,8 @@
         <div class="timeline-dot"></div>
         <div class="timeline-date">Nov 2024</div>
         <div class="timeline-title">1st Place — University Day</div>
-        <div class="timeline-org">Komar University · NavMind & Aspire AI</div>
-        <div class="timeline-desc">Awarded 1st place at the annual University Day competition, showcasing projects NavMind and Aspire AI — demonstrating strong innovation and technical skills.</div>
+        <div class="timeline-org">Komar University</div>
+        <div class="timeline-desc">Awarded 1st place at the annual University Day competition, demonstrating strong innovation and technical skills.</div>
       </div>
       <div class="timeline-item">
         <div class="timeline-dot"></div>
@@ -284,6 +301,52 @@
 
 <div class="divider container"></div>
 
+<!-- PROJECTS -->
+<section id="projects">
+  <div class="container fade-in">
+    <p class="section-label">What I've built</p>
+    <h2 class="section-title">Projects</h2>
+    <div class="projects-grid">
+      <div class="project-card">
+        <div class="project-preview">
+          <div class="project-preview-icon">🛒</div>
+          <div class="project-preview-tags">
+            <span class="project-preview-tag">Python</span>
+            <span class="project-preview-tag">BeautifulSoup</span>
+            <span class="project-preview-tag">Tkinter</span>
+            <span class="project-preview-tag">Pandas</span>
+          </div>
+        </div>
+        <div class="project-body">
+          <div class="project-title">eBay Price Scraper</div>
+          <div class="project-desc">A desktop app that scrapes eBay listings in real time. Search any product, view title, price, shipping, and condition in a clean table, and export results to CSV automatically. Built with a rotating user-agent system to avoid detection.</div>
+          <div class="project-links">
+            <a href="https://github.com/rabarfaruq" target="_blank" class="project-link">⭐ GitHub</a>
+          </div>
+        </div>
+      </div>
+      <div class="project-card">
+        <div class="project-preview" style="background:linear-gradient(135deg,#0d1a14,#0f1f1a)">
+          <div class="project-preview-icon">🏥</div>
+          <div class="project-preview-tags">
+            <span class="project-preview-tag" style="color:#4ade80;border-color:rgba(74,222,128,0.3);background:rgba(74,222,128,0.1)">Flutter</span>
+            <span class="project-preview-tag" style="color:#4ade80;border-color:rgba(74,222,128,0.3);background:rgba(74,222,128,0.1)">Dart</span>
+            <span class="project-preview-tag" style="color:#4ade80;border-color:rgba(74,222,128,0.3);background:rgba(74,222,128,0.1)">Mobile</span>
+          </div>
+        </div>
+        <div class="project-body">
+          <div class="project-title">Anjam — Healthcare Mobile App</div>
+          <div class="project-desc">A full-featured Flutter mobile application for healthcare. Includes patient home screen, hospital listings, health categories, AI chatbot assistant, login system, digital card, multi-language support, and a news feed — all built in Dart.</div>
+          <div class="project-links">
+            <a href="https://github.com/rabarfaruq/Anjam_mobile_application" target="_blank" class="project-link">⭐ GitHub</a>
+          </div>
+        </div>
+      </div>
+  </div>
+</section>
+
+<div class="divider container"></div>
+
 <!-- CERTIFICATIONS -->
 <section id="certifications">
   <div class="container fade-in">
@@ -291,7 +354,7 @@
     <h2 class="section-title">Certifications</h2>
     <div class="certs-grid">
       <div class="cert-card">
-        <div class="cert-date">December 2022</div>
+        <div class="cert-date">December 2021</div>
         <div class="cert-name">B2 English Level</div>
         <div class="cert-org">Center of Intensive English Programs · Komar University</div>
       </div>
@@ -313,7 +376,6 @@
       <div class="cert-card">
         <div class="cert-date">November 2024</div>
         <div class="cert-name">University Day</div>
-        <div class="cert-org">Komar University · NavMind, Aspire AI</div>
         <span class="cert-award">🏆 1st Place</span>
       </div>
       <div class="cert-card">
