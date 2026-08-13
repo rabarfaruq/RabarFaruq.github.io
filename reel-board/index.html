@@ -58,6 +58,7 @@
   .shoot-field input{
     background:var(--bg-node);border:1px solid var(--border-soft);color:var(--text-primary);
     border-radius:5px;padding:6px 9px;font-family:'Inter',sans-serif;font-size:14px;outline:none;
+    color-scheme:dark;
   }
   .shoot-field input:focus{border-color:var(--gold);}
   .shoot-field .field-label{margin-bottom:0;}
@@ -134,10 +135,10 @@
   .node-kill:hover{color:var(--red);}
   .node-body{padding:11px 12px 12px;display:flex;flex-direction:column;gap:9px;}
   .field-label{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px;display:block;}
-  .node input[type=text], .node textarea, .node select{
+  .node input[type=text], .node input[type=date], .node input[type=datetime-local], .node textarea, .node select{
     width:100%;background:var(--bg-canvas);border:1px solid var(--border-soft);
     color:var(--text-primary);border-radius:5px;padding:7px 9px;font-family:'Inter',sans-serif;
-    font-size:14.5px;outline:none;resize:none;
+    font-size:14.5px;outline:none;resize:none;color-scheme:dark;
   }
   .node textarea{min-height:60px;line-height:1.45;font-family:'JetBrains Mono',monospace;font-size:14px;direction:rtl;unicode-bidi:plain-text;text-align:start;}
   .node input[type=text]{unicode-bidi:plain-text;}
@@ -223,7 +224,7 @@
 
     .node-title{font-size:16px;}
     .field-label{font-size:12px;}
-    .node input[type=text], .node textarea, .node select{font-size:16px;padding:9px 10px;}
+    .node input[type=text], .node input[type=date], .node input[type=datetime-local], .node textarea, .node select{font-size:16px;padding:9px 10px;}
     .task-text{font-size:15px;}
   }
 
@@ -245,6 +246,7 @@
   }
   .export-doc h1{font-family:Georgia, serif;font-size:22px;margin:0 0 6px;color:var(--doc-text);}
   .export-doc .pv-meta{font-size:12px;color:var(--doc-dim);margin-bottom:16px;line-height:1.6;}
+  .export-doc a{color:var(--doc-accent);text-decoration:underline;}
   .export-doc .pv-step-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--doc-accent);text-transform:uppercase;letter-spacing:.06em;}
   .export-doc h2{font-size:15px;margin:2px 0 6px;color:var(--doc-text);}
   .export-doc .pv-stage{font-weight:400;color:var(--doc-dim);font-size:12px;}
@@ -395,14 +397,14 @@
     <div class="sep"></div>
     <select id="reelSelect"></select>
     <button class="btn" id="renameBtn">Rename</button>
-    <button class="btn primary" id="newReelBtn">+ New reel</button>
+    <button class="btn primary" id="newReelBtn">+ New Project</button>
     <button class="btn" id="loadExampleBtn">+ Load A STUDIO example</button>
     <button class="btn" id="importBtn">Import PDF / doc</button>
     <input type="file" id="importFile" accept=".pdf,.docx,.doc,.txt" style="display:none" />
     <button class="btn" id="remindersBtn">🔔 Reminders: Off</button>
     <button class="btn" id="equipBtn">🎒 Equipment & Budget</button>
     <button class="btn primary" id="exportBtn">Export steps (PDF)</button>
-    <button class="btn danger" id="deleteReelBtn">Delete reel</button>
+    <button class="btn danger" id="deleteReelBtn">Delete Project</button>
     <div class="spacer"></div>
     <span class="hint">drag from a dot to connect · click a cable to cut it</span>
   </div>
@@ -410,10 +412,13 @@
     <div class="shoot-field">
       <span class="field-label">Location</span>
       <input type="text" id="shootLocation" placeholder="Where this reel shoots" />
+      <div class="cal-row">
+        <button type="button" class="cal-btn" id="shootMapsBtn">📍 Open in Maps</button>
+      </div>
     </div>
     <div class="shoot-field">
       <span class="field-label">Date</span>
-      <input type="text" id="shootDate" placeholder="Shoot date" />
+      <input type="date" id="shootDate" placeholder="Shoot date" />
       <div class="cal-row">
         <button type="button" class="cal-btn" id="shootGcalBtn">📅 Google Cal</button>
         <button type="button" class="cal-btn" id="shootIcsBtn">⬇ .ics</button>
@@ -794,7 +799,7 @@
     }catch(e){ console.error('load failed', e); }
 
     if (reels.length === 0){
-      const r = defaultReel('My first reel');
+      const r = defaultReel('My first project');
       reels = [r];
       activeId = r.id;
       await persistReel(r);
@@ -891,7 +896,7 @@
     if (!reel){ return; }
 
     els.shootLocation.value = reel.location || '';
-    els.shootDate.value = reel.date || '';
+    els.shootDate.value = toDateInputValue(reel.date);
     els.shootBeat.value = reel.beat || '';
 
     if (reel.nodes.length === 0){
@@ -927,6 +932,15 @@
     const reel = activeReel();
     if (!reel) return;
     addToICS(`${reel.name} — shoot day`, reel.date, reel.beat, reel.location);
+  });
+  document.getElementById('shootMapsBtn').addEventListener('click', async ()=>{
+    const reel = activeReel();
+    if (!reel) return;
+    if (!reel.location || !reel.location.trim()){
+      await showAlert('No location set', 'Type a location first, then open it in Maps.');
+      return;
+    }
+    window.open(buildGoogleMapsUrl(reel.location), '_blank');
   });
 
   // ---------- Equipment & Budget panel ----------
@@ -965,7 +979,7 @@
   }
 
   document.getElementById('equipBtn').addEventListener('click', async ()=>{
-    if (!activeReel()){ await showAlert('No reel selected', 'Pick or create a reel first.'); return; }
+    if (!activeReel()){ await showAlert('No project selected', 'Pick or create a project first.'); return; }
     renderEquipPanel();
     document.getElementById('equipOverlay').classList.add('open');
   });
@@ -1050,7 +1064,7 @@
         </div>
         <div>
           <span class="field-label">${node.type === 'social' ? 'Post date & time' : 'Deadline'}</span>
-          <input type="text" class="deadline" placeholder="${node.type === 'social' ? 'e.g. 2026-08-20 6:00 PM' : 'e.g. 2026-08-20'}" value="${escapeAttr(node.deadline || '')}" />
+          <input type="${node.type === 'social' ? 'datetime-local' : 'date'}" class="deadline" value="${node.type === 'social' ? toDateTimeInputValue(node.deadline) : toDateInputValue(node.deadline)}" />
           <div class="cal-row">
             <button type="button" class="cal-btn gcal-btn">📅 Google Cal</button>
             <button type="button" class="cal-btn ics-btn">⬇ .ics</button>
@@ -1394,9 +1408,9 @@
   });
 
   document.getElementById('newReelBtn').addEventListener('click', async ()=>{
-    const entered = await showPrompt('Name this reel', 'New reel');
+    const entered = await showPrompt('Name this project', 'New project');
     if (entered === null) return;
-    const name = entered.trim() || 'New reel';
+    const name = entered.trim() || 'New project';
     const r = defaultReel(name);
     reels.push(r);
     activeId = r.id;
@@ -1440,7 +1454,7 @@
     e.target.value = '';
     if (!file) return;
     const reel = activeReel();
-    if (!reel){ await showAlert('No reel selected', 'Pick or create a reel first.'); return; }
+    if (!reel){ await showAlert('No project selected', 'Pick or create a project first.'); return; }
 
     let text = '';
     let warn = '';
@@ -1506,7 +1520,7 @@
     let html = `<h1>${escapePrint(reel.name)}</h1>`;
     if (reel.location || reel.date || reel.beat){
       html += `<div class="pv-meta">`;
-      if (reel.location) html += `<div><strong>Location:</strong> ${escapePrint(reel.location)}</div>`;
+      if (reel.location) html += `<div><strong>Location:</strong> <a href="${buildGoogleMapsUrl(reel.location)}" target="_blank" rel="noopener">${escapePrint(reel.location)}</a></div>`;
       if (reel.date) html += `<div><strong>Date:</strong> ${escapePrint(reel.date)}</div>`;
       if (reel.beat) html += `<div><strong>Scene:</strong> ${escapePrint(reel.beat)}</div>`;
       html += `</div>`;
@@ -1554,7 +1568,7 @@
 
   document.getElementById('exportBtn').addEventListener('click', async ()=>{
     const reel = activeReel();
-    if (!reel){ await showAlert('No reel selected', 'Pick a reel first.'); return; }
+    if (!reel){ await showAlert('No project selected', 'Pick a project first.'); return; }
     if (reel.nodes.length === 0){ await showAlert('Nothing to export', 'This reel has no stages yet.'); return; }
     document.getElementById('previewContent').innerHTML = buildPrintHtml(reel);
     document.getElementById('previewOverlay').classList.add('open');
@@ -1581,15 +1595,50 @@
   // ---------- calendar export (Google Calendar link + universal .ics file) ----------
   function parseDateLoose(str){
     if (!str) return null;
+    // <input type="date"> gives plain YYYY-MM-DD, which `new Date()` treats as
+    // UTC midnight — that can shift a day in negative-UTC timezones. Build it
+    // from local date parts instead so "the 20th" always means the 20th.
+    const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/.exec(str);
+    if (dateOnly){
+      const d = new Date(Number(dateOnly[1]), Number(dateOnly[2]) - 1, Number(dateOnly[3]));
+      return isNaN(d.getTime()) ? null : d;
+    }
     const d = new Date(str);
     return isNaN(d.getTime()) ? null : d;
   }
+
+  // Converts whatever's stored (old free-typed text, or a fresh ISO value
+  // straight from a date/datetime-local picker) into the exact format those
+  // native inputs require, so old data still shows up correctly in the new
+  // pickers instead of appearing blank.
+  function toDateInputValue(str){
+    if (!str) return '';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+    const d = parseDateLoose(str);
+    if (!d) return '';
+    const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${day}`;
+  }
+  function toDateTimeInputValue(str){
+    if (!str) return '';
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(str)) return str.slice(0, 16);
+    const d = parseDateLoose(str);
+    if (!d) return '';
+    const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+    const hh = String(d.getHours()).padStart(2,'0'), mi = String(d.getMinutes()).padStart(2,'0');
+    return `${y}-${m}-${day}T${hh}:${mi}`;
+  }
+
   function toICSDate(d){
     const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
     return `${y}${m}${day}`;
   }
   function addDays(d, n){ const r = new Date(d); r.setDate(r.getDate()+n); return r; }
   function icsEscape(s){ return (s||'').replace(/\\/g,'\\\\').replace(/\n/g,'\\n').replace(/,/g,'\\,').replace(/;/g,'\\;'); }
+
+  function buildGoogleMapsUrl(location){
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`;
+  }
 
   function buildGoogleCalUrl(title, date, details, location){
     const start = toICSDate(date), end = toICSDate(addDays(date, 1));
@@ -1693,7 +1742,7 @@
   document.getElementById('renameBtn').addEventListener('click', async ()=>{
     const reel = activeReel();
     if (!reel) return;
-    const name = await showPrompt('Rename reel', reel.name);
+    const name = await showPrompt('Rename project', reel.name);
     if (name && name.trim()){
       reel.name = name.trim();
       await persistReel(reel);
@@ -1703,9 +1752,9 @@
   });
 
   document.getElementById('deleteReelBtn').addEventListener('click', async ()=>{
-    if (reels.length <= 1){ await showAlert("Can't delete", "You need at least one reel."); return; }
+    if (reels.length <= 1){ await showAlert("Can't delete", "You need at least one project."); return; }
     const reel = activeReel();
-    const ok = await showConfirm('Delete this reel?', `Delete "${reel.name}"? This can't be undone.`);
+    const ok = await showConfirm('Delete this project?', `Delete "${reel.name}"? This can't be undone.`);
     if (!ok) return;
     try{ await store.delete('reel:' + reel.id); }catch(e){}
     reels = reels.filter(r => r.id !== reel.id);
@@ -1726,20 +1775,7 @@
   })();
 })();
 
-// Register the service worker so the app shell loads instantly and works
-// fully offline after the first visit. Only runs when served over http(s)
-// (e.g. GitHub Pages) — silently does nothing inside sandboxed previews.
-if ('serviceWorker' in navigator && (location.protocol === 'http:' || location.protocol === 'https:')){
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch(() => {});
-  });
-}
-
 // ---------- Install App button ----------
-// Shows a one-tap install button on Android/Chrome/Edge (via the browser's
-// own install prompt), and clear manual instructions on iPhone (Safari has
-// no install API, so "Add to Home Screen" has to be done by hand there).
-// Hides itself automatically once the app is already installed.
 (function(){
   const installBtn = document.getElementById('installBtn');
   const installOverlay = document.getElementById('installOverlay');
@@ -1784,4 +1820,13 @@ if ('serviceWorker' in navigator && (location.protocol === 'http:' || location.p
   installOkBtn.addEventListener('click', ()=> installOverlay.classList.remove('open'));
   window.addEventListener('appinstalled', ()=>{ installBtn.style.display = 'none'; });
 })();
+
+// Register the service worker so the app shell loads instantly and works
+// fully offline after the first visit. Only runs when served over http(s)
+// (e.g. GitHub Pages) — silently does nothing inside sandboxed previews.
+if ('serviceWorker' in navigator && (location.protocol === 'http:' || location.protocol === 'https:')){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
 </script>
