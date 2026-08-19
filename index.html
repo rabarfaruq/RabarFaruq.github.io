@@ -4,6 +4,9 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Rabar Faruq Fatah</title>
+<link rel="icon" href="./favicon.png" type="image/png"/>
+<link rel="apple-touch-icon" href="./icon-180.png"/>
+<meta name="theme-color" content="#0a0a0f"/>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
@@ -19,6 +22,8 @@
   }
   html{scroll-behavior:smooth}
   body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:16px;line-height:1.7;overflow-x:hidden}
+  .icon-inline{display:inline-flex;align-items:center;vertical-align:-0.15em;margin-right:0.35em;}
+  .icon-inline svg{width:1em;height:1em;display:block;}
 
   /* NAV */
   nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1.2rem 2rem;display:flex;justify-content:space-between;align-items:center;background:rgba(10,10,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
@@ -132,6 +137,14 @@
   .contact-form input::placeholder,.contact-form textarea::placeholder{color:var(--muted)}
   .contact-form input:focus,.contact-form textarea:focus{border-color:var(--accent)}
   .contact-form textarea{min-height:120px}
+  .contact-success{display:none;text-align:center;padding:2rem 1rem;background:var(--card);border:1px solid var(--border);border-radius:16px;}
+  .contact-success.show{display:block;}
+  .contact-success .icon-inline{width:2.2rem;height:2.2rem;color:var(--accent);margin:0 0 1rem;}
+  .contact-success .icon-inline svg{width:100%;height:100%;}
+  .contact-success h3{font-family:'Syne',sans-serif;font-weight:700;font-size:1.15rem;margin-bottom:0.5rem;}
+  .contact-success p{color:var(--muted);font-size:0.9rem;margin-bottom:1.3rem;}
+  .contact-form-status{font-size:0.85rem;color:#ff6b6b;margin-top:-0.4rem;display:none;}
+  .contact-form-status.show{display:block;}
 
   /* FOOTER */
   footer{text-align:center;padding:2rem;border-top:1px solid var(--border);color:var(--muted);font-size:0.82rem}
@@ -262,7 +275,7 @@
       </div>
       <div class="about-stats">
         <div class="stat-card">
-          <div class="stat-number">🎓</div>
+          <div class="stat-number"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:1.6rem;height:1.6rem"><path d="M2 9l10-5 10 5-10 5-10-5z"/><path d="M6 11.5V17c0 1 2.5 2.5 6 2.5s6-1.5 6-2.5v-5.5"/><path d="M22 9v6"/></svg></div>
           <div class="stat-label">Graduated 2026</div>
         </div>
         <div class="stat-card">
@@ -291,7 +304,7 @@
     <h2 class="section-title">Skills & Technologies</h2>
     <div class="skills-grid">
       <div class="skill-category">
-        <div class="skill-cat-title">💻 Development</div>
+        <div class="skill-cat-title"><span class="icon-inline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d='M9 18l-6-6 6-6'/><path d='M15 6l6 6-6 6'/></svg></span> Development</div>
         <div class="skill-tags">
           <span class="skill-tag">Flutter</span>
           <span class="skill-tag">C#</span>
@@ -304,7 +317,7 @@
         </div>
       </div>
       <div class="skill-category">
-        <div class="skill-cat-title">🔧 Technical</div>
+        <div class="skill-cat-title"><span class="icon-inline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx='12' cy='12' r='3'/><path d='M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1'/></svg></span> Technical</div>
         <div class="skill-tags">
           <span class="skill-tag">Troubleshooting</span>
           <span class="skill-tag">Hardware</span>
@@ -317,7 +330,7 @@
         </div>
       </div>
       <div class="skill-category">
-        <div class="skill-cat-title">🤝 Leadership</div>
+        <div class="skill-cat-title"><span class="icon-inline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx='9' cy='8' r='3'/><path d='M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6'/><circle cx='17' cy='8' r='2.4'/><path d='M15.5 14.2c2.5.4 4.5 2.6 4.5 5.8'/></svg></span> Leadership</div>
         <div class="skill-tags">
           <span class="skill-tag">Team Management</span>
           <span class="skill-tag">Team Leading</span>
@@ -328,7 +341,7 @@
         </div>
       </div>
       <div class="skill-category">
-        <div class="skill-cat-title">🧠 Personal</div>
+        <div class="skill-cat-title"><span class="icon-inline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d='M9 18h6'/><path d='M10 21h4'/><path d='M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1.1 2h5c.1-.8.5-1.5 1.1-2A6 6 0 0 0 12 3z'/></svg></span> Personal</div>
         <div class="skill-tags">
           <span class="skill-tag">Critical Thinking</span>
           <span class="skill-tag">Time Management</span>
@@ -352,7 +365,7 @@
     <div class="projects-grid">
 
       <div class="project-card">
-        <div class="project-icon">📱</div>
+        <div class="project-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="width:2rem;height:2rem"><rect x="6" y="2" width="12" height="20" rx="2.2"/><path d="M11 18h2"/></svg></div>
         <div class="project-title">Anjam Mobile Application</div>
         <div class="project-desc">A mobile application built to streamline task and workflow management, designed with a clean UI and practical features for everyday use.</div>
         <div class="project-tags">
@@ -363,7 +376,7 @@
       </div>
 
       <div class="project-card">
-        <div class="project-icon">🕷️</div>
+        <div class="project-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="width:2rem;height:2rem"><circle cx="10" cy="10" r="6.5"/><path d="M10 3.5a10 10 0 0 1 0 13M10 3.5a10 10 0 0 0 0 13M3.8 10h12.4"/><path d="M15.5 15.5L21 21"/></svg></div>
         <div class="project-title">WebScraper for eBay</div>
         <div class="project-desc">A web scraping tool that extracts product listings, prices, and data from eBay — useful for price tracking and market research automation.</div>
         <div class="project-tags">
@@ -375,7 +388,7 @@
       </div>
 
       <div class="project-card">
-        <div class="project-icon">🔐</div>
+        <div class="project-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="width:2rem;height:2rem"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
         <div class="project-title">Digital Steganography — LSB in Images</div>
         <div class="project-desc">A Digital Image Processing project combining cybersecurity with creative encoding. Implemented LSB (Least Significant Bit) steganography to conceal and extract plain text within image pixels — without compromising image quality. Applications include digital watermarking, secure communication, and forensics.</div>
         <div class="project-tags">
@@ -387,7 +400,7 @@
       </div>
 
       <div class="project-card">
-        <div class="project-icon">🚗</div>
+        <div class="project-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="width:2rem;height:2rem"><path d="M3.5 15l1.4-4.6A2 2 0 0 1 6.8 9h10.4a2 2 0 0 1 1.9 1.4L20.5 15"/><rect x="2.5" y="15" width="19" height="4.5" rx="1.5"/><circle cx="7" cy="19.5" r="1.6"/><circle cx="17" cy="19.5" r="1.6"/></svg></div>
         <div class="project-title">C.O.A.V. — Controlled Obstacle Avoiding Vehicle</div>
         <div class="project-desc">A smart vehicle engineered to navigate obstacles autonomously and send real-time distance data to the cloud using Firebase. Built as a final project for the Huawei IoT course — demonstrating cloud computing, embedded systems, and real-world sensor integration.</div>
         <div class="project-tags">
@@ -399,7 +412,7 @@
       </div>
 
       <div class="project-card">
-        <div class="project-icon">🎨</div>
+        <div class="project-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="width:2rem;height:2rem"><path d="M12 3a9 9 0 1 0 0 18c1.2 0 2-.9 2-2 0-.5-.2-.9-.5-1.3-.3-.3-.5-.7-.5-1.2 0-1 .8-1.5 1.8-1.5H17a4 4 0 0 0 4-4c0-4.4-4-8-9-8z"/><circle cx="7.5" cy="10.5" r="1"/><circle cx="10.5" cy="7.5" r="1"/><circle cx="14.5" cy="8" r="1"/></svg></div>
         <div class="project-title">AgilePro — Graphic Designer</div>
         <div class="project-desc">Worked as a Graphic Designer at AgilePro, a professional web agency. Designed visuals, promotional content, and social media graphics using Figma — helping communicate the brand's message of building fast, reliable, and user-friendly digital experiences.</div>
         <div class="project-tags">
@@ -420,7 +433,7 @@
       </div>
 
       <div class="project-card">
-        <div class="project-icon">🎥</div>
+        <div class="project-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="width:2rem;height:2rem"><rect x="3" y="7" width="13" height="11" rx="2"/><path d="M16 10.5l5-2.5v9l-5-2.5"/></svg></div>
         <div class="project-title">Videographer & Photographer — Multiple Venues</div>
         <div class="project-desc">Worked as a Videographer and Photographer across multiple organizations, including Komar Times. Captured events, interviews, and content — combining technical skill with a creative eye to tell compelling visual stories.</div>
         <div class="project-tags">
@@ -509,7 +522,7 @@
         <div class="cert-date">November 2024</div>
         <div class="cert-name">University Day</div>
         <div class="cert-org">Komar University · NavMind, Aspire AI</div>
-        <span class="cert-award">🏆 1st Place</span>
+        <span class="cert-award"><span class="icon-inline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d='M7 4h10v4a5 5 0 0 1-10 0V4z'/><path d='M7 5H4a3 3 0 0 0 3 4.5M17 5h3a3 3 0 0 1-3 4.5'/><path d='M12 13v3'/><path d='M9 20h6'/><path d='M10 17h4l.5 3h-5z'/></svg></span> 1st Place</span>
       </div>
       <div class="cert-card">
         <div class="cert-date">April 2025</div>
@@ -518,10 +531,10 @@
       </div>
       <div class="cert-card" style="border-color:rgba(255,180,0,0.3);background:linear-gradient(135deg,#1a1a26,#1e1a10)">
         <div class="cert-date" style="color:#f5c518">October 2025</div>
-        <div class="cert-name">🚀 Galactic Problem Solver</div>
+        <div class="cert-name"><span class="icon-inline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d='M12 2c3 2 4.5 5.5 4.5 9.5 0 2-.5 4-1.5 5.5l-3-1-3 1c-1-1.5-1.5-3.5-1.5-5.5C7.5 7.5 9 4 12 2z'/><circle cx='12' cy='10' r='1.6'/><path d='M9 15l-2.5 1.5V19M15 15l2.5 1.5V19M10.5 17.5L9 22M13.5 17.5L15 22'/></svg></span> Galactic Problem Solver</div>
         <div class="cert-org">NASA International Space Apps Challenge 2025</div>
         <div class="cert-org" style="margin-top:0.3rem;font-size:0.78rem">Signed by Dr. Keith Gaddis · Program Scientist, NASA</div>
-        <span class="cert-award" style="background:rgba(245,197,24,0.12);border-color:rgba(245,197,24,0.3);color:#f5c518">🏅 3rd Place</span>
+        <span class="cert-award" style="background:rgba(245,197,24,0.12);border-color:rgba(245,197,24,0.3);color:#f5c518"><span class="icon-inline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d='M8 2l4 6 4-6'/><circle cx='12' cy='15' r='6'/><path d='M12 12v6M9.5 13.5h5'/></svg></span> 3rd Place</span>
       </div>
       <div class="cert-card">
         <div class="cert-date">June 2026</div>
@@ -550,29 +563,38 @@
         <p>I'm always open to new opportunities, collaborations, or just a friendly conversation. Feel free to reach out!</p>
         <div class="contact-links">
           <a href="tel:+9647700383505" class="contact-link">
-            <div class="contact-icon">📞</div>
+            <div class="contact-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M4 5c0-1 .8-2 1.8-2h2.1c.5 0 .9.3 1 .8l.9 3.2c.1.4 0 .9-.3 1.2L8 9.7a13 13 0 0 0 6.3 6.3l1.5-1.5c.3-.3.8-.4 1.2-.3l3.2.9c.5.1.8.5.8 1v2.1c0 1-.9 1.8-1.9 1.8C10.7 19.9 4.1 13.3 4 5z"/></svg></div>
             <span>(+964) 770 038 3505</span>
           </a>
           <a href="mailto:rabar.faruq97@gmail.com" class="contact-link">
-            <div class="contact-icon">✉️</div>
+            <div class="contact-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5L12 13l8.5-6.5"/></svg></div>
             <span>rabar.faruq97@gmail.com</span>
           </a>
           <a href="https://www.linkedin.com/in/rabarfaruq" target="_blank" class="contact-link">
-            <div class="contact-icon">💼</div>
+            <div class="contact-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M8 8V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg></div>
             <span>LinkedIn Profile</span>
           </a>
           <div class="contact-link">
-            <div class="contact-icon">📍</div>
+            <div class="contact-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M12 21s7-6.5 7-11.5A7 7 0 0 0 5 9.5C5 14.5 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.2"/></svg></div>
             <span>Sulaymaniyah, Raprin, Dldar</span>
           </div>
         </div>
       </div>
-      <form class="contact-form" action="https://formspree.io/f/xojrzzey" method="POST">
-        <input type="text" name="name" placeholder="Your name" required/>
-        <input type="email" name="email" placeholder="Your email" required/>
-        <textarea name="message" placeholder="Your message..." required></textarea>
-        <button type="submit" class="btn btn-primary" style="border:none;text-align:center">Send message</button>
-      </form>
+      <div id="contactFormWrap">
+        <form class="contact-form" id="contactForm" action="https://formspree.io/f/xojrzzey" method="POST">
+          <input type="text" name="name" placeholder="Your name" required/>
+          <input type="email" name="email" placeholder="Your email" required/>
+          <textarea name="message" placeholder="Your message..." required></textarea>
+          <div class="contact-form-status" id="contactFormStatus"></div>
+          <button type="submit" class="btn btn-primary" id="contactSubmitBtn" style="border:none;text-align:center">Send message</button>
+        </form>
+      </div>
+      <div class="contact-success" id="contactSuccess">
+        <span class="icon-inline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9.5"/></svg></span>
+        <h3>Message sent</h3>
+        <p>Thanks for reaching out — I'll reply by email soon.</p>
+        <button class="btn" id="contactAnotherBtn" style="background:var(--card);border:1px solid var(--border);color:var(--text)">Send another message</button>
+      </div>
     </div>
   </div>
 </section>
@@ -586,6 +608,50 @@
     entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible') });
   }, {threshold: 0.1});
   document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+
+<script>
+  (function(){
+    const form = document.getElementById('contactForm');
+    const statusEl = document.getElementById('contactFormStatus');
+    const submitBtn = document.getElementById('contactSubmitBtn');
+    const formWrap = document.getElementById('contactFormWrap');
+    const successPanel = document.getElementById('contactSuccess');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Sending…';
+      statusEl.classList.remove('show');
+
+      try {
+        const res = await fetch(form.action, {
+          method: 'POST',
+          body: new FormData(form),
+          headers: { 'Accept': 'application/json' },
+        });
+        if (res.ok) {
+          formWrap.style.display = 'none';
+          successPanel.classList.add('show');
+        } else {
+          throw new Error('Send failed');
+        }
+      } catch (err) {
+        statusEl.textContent = "Couldn't send that — please try again in a moment.";
+        statusEl.classList.add('show');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Send message';
+      }
+    });
+
+    document.getElementById('contactAnotherBtn').addEventListener('click', () => {
+      form.reset();
+      successPanel.classList.remove('show');
+      formWrap.style.display = 'block';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Send message';
+    });
+  })();
 </script>
 </body>
 </html>

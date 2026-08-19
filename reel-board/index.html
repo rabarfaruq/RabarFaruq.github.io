@@ -48,6 +48,21 @@
   .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--red);box-shadow:0 0 8px var(--red);animation:pulse 2s infinite;}
   @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
   .sep{width:1px;height:20px;background:var(--border);}
+  #moreToggleBtn{display:none;}
+
+  .topbar-more{
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    padding:8px 18px;background:var(--bg-panel);border-bottom:1px solid var(--border-soft);
+  }
+
+  .shootbar-toggle{
+    display:none;width:100%;align-items:center;justify-content:space-between;
+    background:#17191f;border:none;border-bottom:1px solid var(--border-soft);
+    color:var(--text-secondary);font-family:'JetBrains Mono',monospace;font-size:12px;
+    padding:10px 18px;cursor:pointer;
+  }
+  .shootbar-toggle .chevron{transition:transform .2s;color:var(--text-dim);}
+  .shootbar-toggle.open .chevron{transform:rotate(180deg);}
 
   .shootbar{
     display:flex;gap:18px;align-items:flex-end;
@@ -127,6 +142,13 @@
   }
   .node-head:active{cursor:grabbing;}
   .stage-tag{width:9px;height:9px;border-radius:2px;background:var(--stage-color);flex-shrink:0;box-shadow:0 0 6px var(--stage-color);}
+  .drag-handle{
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+    width:26px;height:26px;margin-left:-6px;border-radius:6px;color:var(--text-dim);
+    cursor:grab;touch-action:none;
+  }
+  .drag-handle:hover{color:var(--text-secondary);background:rgba(255,255,255,.04);}
+  .drag-handle:active{cursor:grabbing;color:var(--gold);background:rgba(255,255,255,.06);}
   .node-title{
     flex:1;background:transparent;border:none;color:var(--text-primary);
     font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15.5px;outline:none;min-width:0;
@@ -174,11 +196,20 @@
   .port{
     position:absolute;top:18px;width:14px;height:14px;border-radius:50%;
     background:var(--bg-canvas);border:2px solid var(--stage-color);cursor:crosshair;
-    pointer-events:auto;
+    pointer-events:auto;touch-action:none;
   }
   .port.out{right:-7px;}
   .port.in{left:-7px;}
   .port:hover{background:var(--stage-color);}
+
+  /* Bigger touch targets on any touch-primary device, regardless of screen
+     width — a width-only breakpoint misses a landscape iPad or tablet. */
+  @media (pointer: coarse){
+    .port{width:24px;height:24px;top:12px;}
+    .port.out{right:-12px;}
+    .port.in{left:-12px;}
+    .drag-handle{width:34px;height:34px;}
+  }
 
   .empty-hint{
     position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);
@@ -194,13 +225,21 @@
     .hint{display:none;}
     select#reelSelect{max-width:none;flex:1 1 100%;order:1;font-size:13px;}
     .btn{font-size:12px;padding:8px 10px;order:2;flex:1 1 auto;justify-content:center;}
-    #renameBtn{order:2;}
-    #newReelBtn{order:2;}
-    #loadExampleBtn{order:2;}
-    #deleteReelBtn{order:2;}
+    #newReelBtn{flex:1 1 auto;}
+    #moreToggleBtn{display:flex;flex:0 0 auto;}
     .spacer{display:none;}
 
-    .shootbar{flex-direction:column;align-items:stretch;gap:8px;padding:8px 10px;}
+    /* Collapsed by default on mobile — tap "⋯ More" to reveal these,
+       instead of every action button eating screen space up front. */
+    .topbar-more{display:none;padding:8px 10px;}
+    .topbar-more.open{display:flex;}
+    .topbar-more .btn{flex:1 1 auto;font-size:12px;padding:8px 10px;}
+
+    /* Same idea for location/date/scene — collapsed behind a small toggle
+       so the canvas is what you actually see first. */
+    .shootbar-toggle{display:flex;}
+    .shootbar{display:none;flex-direction:column;align-items:stretch;gap:8px;padding:8px 10px;}
+    .shootbar.open{display:flex;}
     .shoot-field{min-width:0;width:100%;}
     .shoot-field input{font-size:15px;padding:8px 10px;}
 
@@ -217,10 +256,6 @@
 
     .canvas-wrap{flex:1;min-height:0;}
     .node{width:82vw;max-width:320px;}
-
-    .port{width:22px;height:22px;}
-    .port.out{right:-11px;}
-    .port.in{left:-11px;}
 
     .node-title{font-size:16px;}
     .field-label{font-size:12px;}
@@ -396,18 +431,28 @@
     <button class="btn primary" id="installBtn" style="display:none;">📲 Install App</button>
     <div class="sep"></div>
     <select id="reelSelect"></select>
-    <button class="btn" id="renameBtn">Rename</button>
     <button class="btn primary" id="newReelBtn">+ New Project</button>
+    <button class="btn" id="moreToggleBtn">⋯ More</button>
+    <div class="spacer"></div>
+    <span class="hint">drag from a dot to connect · click a cable to cut it</span>
+  </div>
+  <div class="topbar-more" id="topbarMore">
+    <button class="btn" id="renameBtn">Rename</button>
     <button class="btn" id="loadExampleBtn">+ Load A STUDIO example</button>
     <button class="btn" id="importBtn">Import PDF / doc</button>
     <input type="file" id="importFile" accept=".pdf,.docx,.doc,.txt" style="display:none" />
     <button class="btn" id="remindersBtn">🔔 Reminders: Off</button>
     <button class="btn" id="equipBtn">🎒 Equipment & Budget</button>
     <button class="btn primary" id="exportBtn">Export steps (PDF)</button>
+    <button class="btn" id="backupBtn">💾 Backup project</button>
+    <button class="btn" id="restoreBtn">📂 Restore backup</button>
+    <input type="file" id="restoreFile" accept=".json" style="display:none" />
     <button class="btn danger" id="deleteReelBtn">Delete Project</button>
-    <div class="spacer"></div>
-    <span class="hint">drag from a dot to connect · click a cable to cut it</span>
   </div>
+  <button class="shootbar-toggle" id="shootbarToggle">
+    <span id="shootbarToggleLabel">📍 Shoot info</span>
+    <span class="chevron">▾</span>
+  </button>
   <div class="shootbar" id="shootbar">
     <div class="shoot-field">
       <span class="field-label">Location</span>
@@ -898,6 +943,7 @@
     els.shootLocation.value = reel.location || '';
     els.shootDate.value = toDateInputValue(reel.date);
     els.shootBeat.value = reel.beat || '';
+    updateShootbarToggleLabel(reel);
 
     if (reel.nodes.length === 0){
       const hint = document.createElement('div');
@@ -912,6 +958,13 @@
     drawWires();
   }
 
+  function updateShootbarToggleLabel(reel){
+    const toggleLabel = document.getElementById('shootbarToggleLabel');
+    if (!toggleLabel || !reel) return;
+    const bits = [reel.location, reel.date].filter(Boolean);
+    toggleLabel.textContent = bits.length ? `📍 ${bits.join(' · ')}` : '📍 Shoot info';
+  }
+
   [els.shootLocation, els.shootDate, els.shootBeat].forEach(input=>{
     input.addEventListener('input', ()=>{
       const reel = activeReel();
@@ -919,6 +972,7 @@
       reel.location = els.shootLocation.value;
       reel.date = els.shootDate.value;
       reel.beat = els.shootBeat.value;
+      updateShootbarToggleLabel(reel);
       scheduleSave();
     });
   });
@@ -1024,6 +1078,16 @@
 
     el.innerHTML = `
       <div class="node-head">
+        <span class="drag-handle" title="Drag to move">
+          <svg width="12" height="18" viewBox="0 0 12 18" fill="none">
+            <circle cx="3" cy="3" r="1.5" fill="currentColor"/>
+            <circle cx="9" cy="3" r="1.5" fill="currentColor"/>
+            <circle cx="3" cy="9" r="1.5" fill="currentColor"/>
+            <circle cx="9" cy="9" r="1.5" fill="currentColor"/>
+            <circle cx="3" cy="15" r="1.5" fill="currentColor"/>
+            <circle cx="9" cy="15" r="1.5" fill="currentColor"/>
+          </svg>
+        </span>
         <span class="stage-tag"></span>
         <input type="text" class="node-title" value="${escapeAttr(node.title)}" />
         <button class="node-kill" title="Remove">✕</button>
@@ -1145,34 +1209,43 @@
       renderTasklist(el.querySelector('.tasklist'), node);
     }
 
-    // dragging
+    // dragging — Pointer Events cover mouse, touch, and pen with one API,
+    // so this works the same on a trackpad, phone, or tablet.
     const head = el.querySelector('.node-head');
-    head.addEventListener('mousedown', (e)=>{
-      if (e.target.tagName === 'INPUT') return;
+    head.style.touchAction = 'none';
+    head.addEventListener('pointerdown', (e)=>{
+      if (e.target.closest('input, button')) return;
       e.preventDefault();
+      try{ head.setPointerCapture(e.pointerId); }catch(err){}
       const startX = e.clientX, startY = e.clientY;
       const origX = node.x, origY = node.y;
       el.classList.add('dragging');
       function onMove(ev){
+        if (ev.pointerId !== e.pointerId) return;
         node.x = origX + (ev.clientX - startX);
         node.y = origY + (ev.clientY - startY);
         el.style.left = node.x + 'px';
         el.style.top = node.y + 'px';
         drawWires();
       }
-      function onUp(){
+      function onUp(ev){
+        if (ev.pointerId !== e.pointerId) return;
         el.classList.remove('dragging');
-        document.removeEventListener('mousemove', onMove);
-        document.removeEventListener('mouseup', onUp);
+        head.removeEventListener('pointermove', onMove);
+        head.removeEventListener('pointerup', onUp);
+        head.removeEventListener('pointercancel', onUp);
+        try{ head.releasePointerCapture(e.pointerId); }catch(err){}
         scheduleSave();
       }
-      document.addEventListener('mousemove', onMove);
-      document.addEventListener('mouseup', onUp);
+      head.addEventListener('pointermove', onMove);
+      head.addEventListener('pointerup', onUp);
+      head.addEventListener('pointercancel', onUp);
     });
 
     // connection dragging from output port
     const outPort = el.querySelector('.port.out');
-    outPort.addEventListener('mousedown', (e)=>{
+    outPort.style.touchAction = 'none';
+    outPort.addEventListener('pointerdown', (e)=>{
       e.preventDefault(); e.stopPropagation();
       startWireDrag(node.id, e);
     });
@@ -1279,17 +1352,29 @@
     dragWireEl.setAttribute('class','drag-wire');
     els.wires.appendChild(dragWireEl);
 
+    const portEl = e.target;
+    try{ portEl.setPointerCapture(e.pointerId); }catch(err){}
+
     function onMove(ev){
+      if (ev.pointerId !== e.pointerId) return;
       const wrapRect = els.canvas.getBoundingClientRect();
       const p1 = portPos(fromId, 'out');
       const p2 = { x: ev.clientX - wrapRect.left, y: ev.clientY - wrapRect.top };
       dragWireEl.setAttribute('d', bezier(p1, p2));
     }
     function onUp(ev){
-      document.removeEventListener('mousemove', onMove);
-      document.removeEventListener('mouseup', onUp);
+      if (ev.pointerId !== e.pointerId) return;
+      portEl.removeEventListener('pointermove', onMove);
+      portEl.removeEventListener('pointerup', onUp);
+      portEl.removeEventListener('pointercancel', onUp);
+      try{ portEl.releasePointerCapture(e.pointerId); }catch(err){}
       if (dragWireEl){ dragWireEl.remove(); dragWireEl = null; }
-      const targetNode = ev.target.closest('.node');
+      // With the port holding pointer capture, ev.target stays the port itself
+      // throughout the drag — so find what's actually under the finger/cursor
+      // at release time instead, which is what makes drop-to-connect work on
+      // touchscreens the same way it does with a mouse.
+      const dropEl = document.elementFromPoint(ev.clientX, ev.clientY);
+      const targetNode = dropEl ? dropEl.closest('.node') : null;
       if (targetNode){
         const toId = targetNode.dataset.id;
         if (toId !== fromId){
@@ -1304,8 +1389,9 @@
       drawWires();
       dragFrom = null;
     }
-    document.addEventListener('mousemove', onMove);
-    document.addEventListener('mouseup', onUp);
+    portEl.addEventListener('pointermove', onMove);
+    portEl.addEventListener('pointerup', onUp);
+    portEl.addEventListener('pointercancel', onUp);
   }
 
   // ---------- example campaign seed ----------
@@ -1764,7 +1850,78 @@
     renderCanvas();
   });
 
+  // ---------- backup / restore (a real safety net — everything on this
+  // device, in one file you keep yourself, separate from the PDF export) ----------
+  document.getElementById('backupBtn').addEventListener('click', ()=>{
+    const payload = {
+      app: 'reel-board', version: 1,
+      exportedAt: new Date().toISOString(),
+      reels: reels,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const stamp = new Date().toISOString().slice(0, 10);
+    a.href = url; a.download = `reel-board-backup-${stamp}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=> URL.revokeObjectURL(url), 2000);
+  });
+
+  document.getElementById('restoreBtn').addEventListener('click', ()=>{
+    document.getElementById('restoreFile').click();
+  });
+
+  document.getElementById('restoreFile').addEventListener('change', async (e)=>{
+    const file = e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+
+    let payload;
+    try{
+      const text = await file.text();
+      payload = JSON.parse(text);
+    }catch(err){
+      await showAlert("Couldn't read that backup", "That file doesn't look like a valid Reel Board backup.");
+      return;
+    }
+
+    const incoming = Array.isArray(payload) ? payload : payload.reels;
+    if (!Array.isArray(incoming) || incoming.length === 0){
+      await showAlert("Nothing to restore", "That backup file doesn't contain any projects.");
+      return;
+    }
+
+    // Never silently overwrite what's already here — restore always adds
+    // projects alongside your current ones. If a project with the same id
+    // already exists (restoring the same backup twice), it's added as a
+    // fresh copy with a new id rather than skipped or overwritten.
+    const existingIds = new Set(reels.map(r => r.id));
+    const restored = incoming.map(r => {
+      const copy = JSON.parse(JSON.stringify(r));
+      if (existingIds.has(copy.id)) copy.id = uid('reel');
+      existingIds.add(copy.id);
+      return copy;
+    });
+
+    reels = reels.concat(restored);
+    activeId = restored[0].id;
+    for (const r of restored){ await persistReel(r); }
+    await persistIndex();
+    buildReelSelect();
+    renderCanvas();
+    await showAlert('Restored', `Added ${restored.length} project${restored.length === 1 ? '' : 's'} from the backup.`);
+  });
+
   window.addEventListener('resize', drawWires);
+
+  // ---------- mobile: collapsible "More" actions + shoot info bar ----------
+  document.getElementById('moreToggleBtn').addEventListener('click', ()=>{
+    document.getElementById('topbarMore').classList.toggle('open');
+  });
+  document.getElementById('shootbarToggle').addEventListener('click', ()=>{
+    document.getElementById('shootbar').classList.toggle('open');
+    document.getElementById('shootbarToggle').classList.toggle('open');
+  });
 
   // ---------- init ----------
   (async function init(){
