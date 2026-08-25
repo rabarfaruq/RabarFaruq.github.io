@@ -5,8 +5,8 @@
 <!-- PWA: installable on Android + iPhone, works offline once loaded -->
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#14161b">
-<link rel="icon" href="./favicon.png" type="image/png">
-<link rel="apple-touch-icon" href="./icon-180.png">
+<link rel="icon" href="./favicon.png?v=2" type="image/png">
+<link rel="apple-touch-icon" href="./icon-180.png?v=2">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Reel Board">
@@ -48,15 +48,16 @@
   .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--red);box-shadow:0 0 8px var(--red);animation:pulse 2s infinite;}
   @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
   .sep{width:1px;height:20px;background:var(--border);}
-  #moreToggleBtn{display:none;}
+  #moreToggleBtn{display:flex;}
 
   .topbar-more{
-    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    display:none;align-items:center;gap:10px;flex-wrap:wrap;
     padding:8px 18px;background:var(--bg-panel);border-bottom:1px solid var(--border-soft);
   }
+  .topbar-more.open{display:flex;}
 
   .shootbar-toggle{
-    display:none;width:100%;align-items:center;justify-content:space-between;
+    display:flex;width:100%;align-items:center;justify-content:space-between;
     background:#17191f;border:none;border-bottom:1px solid var(--border-soft);
     color:var(--text-secondary);font-family:'JetBrains Mono',monospace;font-size:12px;
     padding:10px 18px;cursor:pointer;
@@ -65,9 +66,10 @@
   .shootbar-toggle.open .chevron{transform:rotate(180deg);}
 
   .shootbar{
-    display:flex;gap:18px;align-items:flex-end;
+    display:none;gap:18px;align-items:flex-end;
     padding:8px 18px;background:#17191f;border-bottom:1px solid var(--border-soft);
   }
+  .shootbar.open{display:flex;}
   .shoot-field{display:flex;flex-direction:column;gap:2px;min-width:160px;}
   .shoot-field.wide{flex:1;}
   .shoot-field input{
@@ -77,6 +79,8 @@
   }
   .shoot-field input:focus{border-color:var(--gold);}
   .shoot-field .field-label{margin-bottom:0;}
+  .runtime-total{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-dim);margin-top:5px;}
+  .runtime-total.over{color:var(--red);}
   select#reelSelect{
     background:var(--bg-node);color:var(--text-primary);border:1px solid var(--border);
     font-family:'JetBrains Mono',monospace;font-size:12.5px;padding:6px 10px;border-radius:6px;
@@ -194,7 +198,7 @@
   .task-add button:hover{border-color:var(--stage-color);color:var(--text-primary);}
 
   .port{
-    position:absolute;top:18px;width:14px;height:14px;border-radius:50%;
+    position:absolute;top:42px;width:14px;height:14px;border-radius:50%;
     background:var(--bg-canvas);border:2px solid var(--stage-color);cursor:crosshair;
     pointer-events:auto;touch-action:none;
   }
@@ -203,9 +207,11 @@
   .port:hover{background:var(--stage-color);}
 
   /* Bigger touch targets on any touch-primary device, regardless of screen
-     width — a width-only breakpoint misses a landscape iPad or tablet. */
+     width — a width-only breakpoint misses a landscape iPad or tablet.
+     Sized so its vertical center lands at the same spot as the default dot
+     (top + half-height = 49px both ways), so cables still line up correctly. */
   @media (pointer: coarse){
-    .port{width:24px;height:24px;top:12px;}
+    .port{width:24px;height:24px;top:37px;}
     .port.out{right:-12px;}
     .port.in{left:-12px;}
     .drag-handle{width:34px;height:34px;}
@@ -410,13 +416,28 @@
   }
   .expand-head span{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15px;color:var(--text-primary);}
   .expand-actions{display:flex;gap:8px;}
-  #expandTextarea{
-    flex:1;width:100%;background:var(--bg-canvas);border:none;color:var(--text-primary);
-    padding:22px 24px;font-family:'JetBrains Mono',monospace;font-size:18px;line-height:1.7;
-    outline:none;resize:none;unicode-bidi:plain-text;
+
+  .expand-page-wrap{
+    flex:1;overflow-y:auto;display:flex;justify-content:center;
+    scrollbar-width:auto;scrollbar-color:var(--gold) var(--bg-panel);
   }
+  .expand-page-wrap::-webkit-scrollbar{width:14px;}
+  .expand-page-wrap::-webkit-scrollbar-track{background:var(--bg-panel);}
+  .expand-page-wrap::-webkit-scrollbar-thumb{background:var(--gold);border-radius:7px;border:3px solid var(--bg-panel);}
+  #expandTextarea{
+    width:100%;max-width:820px;background:var(--bg-canvas);border:none;color:var(--text-primary);
+    padding:36px 30px;font-family:'JetBrains Mono',monospace;font-size:14.5px;line-height:1.55;
+    outline:none;resize:none;unicode-bidi:plain-text;overflow-y:hidden;
+  }
+  .expand-scroll-hint{
+    display:none;align-items:center;gap:6px;
+    font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--gold);
+    background:rgba(242,180,65,0.12);border:1px solid rgba(242,180,65,0.3);
+    padding:5px 10px;border-radius:999px;white-space:nowrap;
+  }
+  .expand-scroll-hint.show{display:flex;}
   @media (max-width:780px){
-    #expandTextarea{font-size:17px;padding:16px;}
+    #expandTextarea{font-size:16px;padding:20px 16px;line-height:1.5;}
     .expand-head span{font-size:13.5px;}
   }
 </style>
@@ -438,7 +459,7 @@
   </div>
   <div class="topbar-more" id="topbarMore">
     <button class="btn" id="renameBtn">Rename</button>
-    <button class="btn" id="loadExampleBtn">+ Load A STUDIO example</button>
+    <button class="btn" id="loadExampleBtn">+ Load example</button>
     <button class="btn" id="importBtn">Import PDF / doc</button>
     <input type="file" id="importFile" accept=".pdf,.docx,.doc,.txt" style="display:none" />
     <button class="btn" id="remindersBtn">🔔 Reminders: Off</button>
@@ -472,6 +493,11 @@
     <div class="shoot-field wide">
       <span class="field-label">Scene / what happens here</span>
       <input type="text" id="shootBeat" placeholder="One line — what this reel covers on location" />
+    </div>
+    <div class="shoot-field">
+      <span class="field-label">Target runtime</span>
+      <input type="text" id="shootTargetRuntime" placeholder="e.g. 1:00" />
+      <div class="runtime-total" id="runtimeTotal"></div>
     </div>
   </div>
   <div class="body">
@@ -539,14 +565,15 @@
 </div>
 
 <div class="expand-overlay" id="expandOverlay">
-  <div class="expand-panel">
-    <div class="expand-head">
-      <span id="expandTitle"></span>
-      <div class="expand-actions">
-        <button class="btn" id="expandCloseBtn">Close without saving</button>
-        <button class="btn primary" id="expandSaveBtn">Save</button>
-      </div>
+  <div class="expand-head">
+    <span id="expandTitle"></span>
+    <span class="expand-scroll-hint" id="expandScrollHint">↕ more below — scroll to see all of it</span>
+    <div class="expand-actions">
+      <button class="btn" id="expandCloseBtn">Close without saving</button>
+      <button class="btn primary" id="expandSaveBtn">Save</button>
     </div>
+  </div>
+  <div class="expand-page-wrap" id="expandPageWrap">
     <textarea id="expandTextarea"></textarea>
   </div>
 </div>
@@ -760,8 +787,25 @@
   const expandOverlay = document.getElementById('expandOverlay');
   const expandTitle = document.getElementById('expandTitle');
   const expandTextarea = document.getElementById('expandTextarea');
+  const expandPageWrap = document.getElementById('expandPageWrap');
   let expandingNode = null;
   let expandingTextareaEl = null;
+
+  // The textarea grows to fit ALL of its content (like a page in Word) instead
+  // of scrolling internally — the page wrapper around it scrolls instead, so
+  // what you see is the actual document, not a small window onto it.
+  function autoGrowExpandTextarea(){
+    expandTextarea.style.height = 'auto';
+    expandTextarea.style.height = expandTextarea.scrollHeight + 'px';
+  }
+
+  function updateExpandScrollHint(){
+    const hint = document.getElementById('expandScrollHint');
+    if (!hint || !expandPageWrap) return;
+    const overflowing = expandPageWrap.scrollHeight > expandPageWrap.clientHeight + 4;
+    const atBottom = expandPageWrap.scrollTop + expandPageWrap.clientHeight >= expandPageWrap.scrollHeight - 4;
+    hint.classList.toggle('show', overflowing && !atBottom);
+  }
 
   function openExpandEditor(node, label, sourceTextareaEl){
     expandingNode = node;
@@ -769,8 +813,17 @@
     expandTitle.textContent = `${node.title} — ${label}`;
     expandTextarea.value = node.content || '';
     expandOverlay.classList.add('open');
-    setTimeout(()=>{ try{ expandTextarea.focus(); }catch(e){} }, 30);
+    setTimeout(()=>{
+      try{ expandTextarea.focus(); }catch(e){}
+      autoGrowExpandTextarea();
+      if (expandPageWrap) expandPageWrap.scrollTop = 0;
+      updateExpandScrollHint();
+    }, 30);
   }
+
+  expandTextarea.addEventListener('input', ()=>{ autoGrowExpandTextarea(); updateExpandScrollHint(); });
+  if (expandPageWrap) expandPageWrap.addEventListener('scroll', updateExpandScrollHint);
+  window.addEventListener('resize', ()=>{ autoGrowExpandTextarea(); updateExpandScrollHint(); });
 
   document.getElementById('expandSaveBtn').addEventListener('click', ()=>{
     if (expandingNode){
@@ -821,7 +874,7 @@
   function defaultReel(name){
     return {
       id: uid('reel'), name: name || 'Untitled reel', nodes: [], edges: [],
-      location: '', date: '', beat: '',
+      location: '', date: '', beat: '', targetRuntime: '',
       equipment: [], budgetTotal: '', budgetNotes: ''
     };
   }
@@ -920,6 +973,7 @@
       reminded: false,
       platform: '',
       postType: '',
+      duration: '',
       tasks: buildTasksFromTemplate(type)
     };
     reel.nodes.push(node);
@@ -943,6 +997,7 @@
     els.shootLocation.value = reel.location || '';
     els.shootDate.value = toDateInputValue(reel.date);
     els.shootBeat.value = reel.beat || '';
+    document.getElementById('shootTargetRuntime').value = reel.targetRuntime || '';
     updateShootbarToggleLabel(reel);
 
     if (reel.nodes.length === 0){
@@ -956,7 +1011,63 @@
 
     reel.nodes.forEach(node => els.canvas.appendChild(buildNodeEl(node)));
     drawWires();
+    updateRuntimeTotal();
   }
+
+  // ---------- runtime / duration helpers ----------
+  // Accepts "0:30", "1:00", "1:05:30", or a bare number of seconds like "45".
+  function parseDurationToSeconds(str){
+    if (!str) return null;
+    const trimmed = str.trim();
+    if (/^\d+$/.test(trimmed)) return parseInt(trimmed, 10);
+    const parts = trimmed.split(':').map(p => parseInt(p, 10));
+    if (parts.some(isNaN)) return null;
+    let seconds = 0;
+    for (const p of parts) seconds = seconds * 60 + p;
+    return seconds;
+  }
+  function formatSecondsToClock(totalSeconds){
+    totalSeconds = Math.round(totalSeconds);
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = totalSeconds % 60;
+    const mm = h > 0 ? String(m).padStart(2, '0') : String(m);
+    const ss = String(s).padStart(2, '0');
+    return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
+  }
+  function updateRuntimeTotal(){
+    const reel = activeReel();
+    const totalEl = document.getElementById('runtimeTotal');
+    if (!reel || !totalEl) return;
+    let totalSeconds = 0;
+    let anyParsed = false;
+    reel.nodes.forEach(n=>{
+      const s = parseDurationToSeconds(n.duration);
+      if (s !== null){ totalSeconds += s; anyParsed = true; }
+    });
+    if (!anyParsed){
+      totalEl.textContent = '';
+      totalEl.classList.remove('over');
+      return;
+    }
+    const targetSeconds = parseDurationToSeconds(reel.targetRuntime);
+    let text = `Planned total: ${formatSecondsToClock(totalSeconds)}`;
+    let over = false;
+    if (targetSeconds !== null){
+      over = totalSeconds > targetSeconds;
+      text += over ? ` (over by ${formatSecondsToClock(totalSeconds - targetSeconds)})` : ` (within target)`;
+    }
+    totalEl.textContent = text;
+    totalEl.classList.toggle('over', over);
+  }
+
+  document.getElementById('shootTargetRuntime').addEventListener('input', e=>{
+    const reel = activeReel();
+    if (!reel) return;
+    reel.targetRuntime = e.target.value;
+    scheduleSave();
+    updateRuntimeTotal();
+  });
 
   function updateShootbarToggleLabel(reel){
     const toggleLabel = document.getElementById('shootbarToggleLabel');
@@ -1122,9 +1233,15 @@
             <select class="role"></select>
           </div>
         </div>
-        <div>
-          <span class="field-label">Status</span>
-          <select class="status status-pill"></select>
+        <div class="row2">
+          <div>
+            <span class="field-label">Status</span>
+            <select class="status status-pill"></select>
+          </div>
+          <div>
+            <span class="field-label">Duration</span>
+            <input type="text" class="duration" placeholder="e.g. 0:30" value="${escapeAttr(node.duration || '')}" />
+          </div>
         </div>
         <div>
           <span class="field-label">${node.type === 'social' ? 'Post date & time' : 'Deadline'}</span>
@@ -1192,6 +1309,11 @@
       node.deadline = e.target.value;
       node.reminded = false;
       scheduleSave();
+    });
+    el.querySelector('.duration').addEventListener('input', e=>{
+      node.duration = e.target.value;
+      scheduleSave();
+      updateRuntimeTotal();
     });
     el.querySelector('.gcal-btn').addEventListener('click', ()=>{
       const reel = activeReel();
@@ -1317,7 +1439,7 @@
     if (!el) return null;
     const node = activeReel().nodes.find(n=>n.id===nodeId);
     const x = side === 'out' ? node.x + el.offsetWidth : node.x;
-    const y = node.y + 16 + 6;
+    const y = node.y + 49;
     return {x, y};
   }
 
@@ -1401,7 +1523,7 @@
       id: uid('node'), type, title: title || def.label,
       x: 0, y: 0, assignee: '', role: 'In-house', status: 'Not started',
       content: content || '', deadline: '', reminded: false,
-      platform: '', postType: '',
+      platform: '', postType: '', duration: '',
       tasks: buildTasksFromTemplate(type)
     };
     return Object.assign(base, extra || {});
@@ -1604,11 +1726,19 @@
   function buildPrintHtml(reel){
     const order = topoOrder(reel);
     let html = `<h1>${escapePrint(reel.name)}</h1>`;
-    if (reel.location || reel.date || reel.beat){
+    if (reel.location || reel.date || reel.beat || reel.targetRuntime){
       html += `<div class="pv-meta">`;
       if (reel.location) html += `<div><strong>Location:</strong> <a href="${buildGoogleMapsUrl(reel.location)}" target="_blank" rel="noopener">${escapePrint(reel.location)}</a></div>`;
       if (reel.date) html += `<div><strong>Date:</strong> ${escapePrint(reel.date)}</div>`;
       if (reel.beat) html += `<div><strong>Scene:</strong> ${escapePrint(reel.beat)}</div>`;
+      if (reel.targetRuntime){
+        const totalSeconds = reel.nodes.reduce((sum, n)=>{
+          const s = parseDurationToSeconds(n.duration);
+          return sum + (s || 0);
+        }, 0);
+        const anyDurations = reel.nodes.some(n => parseDurationToSeconds(n.duration) !== null);
+        html += `<div><strong>Target runtime:</strong> ${escapePrint(reel.targetRuntime)}${anyDurations ? ` (planned total: ${formatSecondsToClock(totalSeconds)})` : ''}</div>`;
+      }
       html += `</div>`;
     }
     if ((reel.equipment && reel.equipment.length) || reel.budgetTotal || reel.budgetNotes){
@@ -1636,7 +1766,7 @@
       if (node.type === 'social' && (node.platform || node.postType)){
         html += `<div class="pv-row"><strong>Platform:</strong> ${escapePrint(node.platform) || '—'} &nbsp;&nbsp; <strong>Post type:</strong> ${escapePrint(node.postType) || '—'}</div>`;
       }
-      html += `<div class="pv-row"><strong>Assigned to:</strong> ${escapePrint(node.assignee) || '—'} &nbsp;&nbsp; <strong>Type:</strong> ${escapePrint(node.role)} &nbsp;&nbsp; <strong>Status:</strong> ${escapePrint(node.status)}${node.deadline ? ' &nbsp;&nbsp; <strong>' + (node.type === 'social' ? 'Post date & time' : 'Deadline') + ':</strong> ' + escapePrint(node.deadline) : ''}</div>`;
+      html += `<div class="pv-row"><strong>Assigned to:</strong> ${escapePrint(node.assignee) || '—'} &nbsp;&nbsp; <strong>Type:</strong> ${escapePrint(node.role)} &nbsp;&nbsp; <strong>Status:</strong> ${escapePrint(node.status)}${node.duration ? ' &nbsp;&nbsp; <strong>Duration:</strong> ' + escapePrint(node.duration) : ''}${node.deadline ? ' &nbsp;&nbsp; <strong>' + (node.type === 'social' ? 'Post date & time' : 'Deadline') + ':</strong> ' + escapePrint(node.deadline) : ''}</div>`;
       if (node.content){
         html += `<div class="pv-content">${escapePrint(node.content)}</div>`;
       }
