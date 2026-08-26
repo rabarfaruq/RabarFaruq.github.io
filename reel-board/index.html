@@ -477,7 +477,7 @@
   <div class="shootbar" id="shootbar">
     <div class="shoot-field">
       <span class="field-label">Location</span>
-      <input type="text" id="shootLocation" placeholder="Where this reel shoots" />
+      <input type="text" id="shootLocation" placeholder="Address, or paste a Google Maps link" />
       <div class="cal-row">
         <button type="button" class="cal-btn" id="shootMapsBtn">📍 Open in Maps</button>
       </div>
@@ -1862,7 +1862,13 @@
   function icsEscape(s){ return (s||'').replace(/\\/g,'\\\\').replace(/\n/g,'\\n').replace(/,/g,'\\,').replace(/;/g,'\\;'); }
 
   function buildGoogleMapsUrl(location){
-    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`;
+    const trimmed = (location || '').trim();
+    // If it's already a Maps link (e.g. a share link like maps.app.goo.gl/...,
+    // or any google.com/maps / goo.gl/maps URL), use it exactly as pasted —
+    // that's a precise pin, far more accurate than re-searching by name.
+    const isMapsLink = /^https?:\/\/(www\.)?(maps\.app\.goo\.gl|goo\.gl\/maps|(maps\.)?google\.[a-z.]+\/maps)/i.test(trimmed);
+    if (isMapsLink) return trimmed;
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(trimmed)}`;
   }
 
   function buildGoogleCalUrl(title, date, details, location){
