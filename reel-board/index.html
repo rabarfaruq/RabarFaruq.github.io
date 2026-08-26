@@ -1805,7 +1805,16 @@
   document.getElementById('previewPrintBtn').addEventListener('click', ()=>{
     document.getElementById('printView').innerHTML = document.getElementById('previewContent').innerHTML;
     document.getElementById('previewOverlay').classList.remove('open');
-    setTimeout(()=> window.print(), 60);
+    // The browser's "Save as PDF" dialog suggests document.title as the
+    // filename — set it to the actual project name so what gets saved isn't
+    // just called "Reel Board.pdf" for every project.
+    const reel = activeReel();
+    const originalTitle = document.title;
+    if (reel) document.title = `${reel.name} — steps`;
+    setTimeout(()=>{
+      window.print();
+      setTimeout(()=>{ document.title = originalTitle; }, 500);
+    }, 60);
   });
 
   // ---------- calendar export (Google Calendar link + universal .ics file) ----------
@@ -1881,13 +1890,39 @@
     ].join('\r\n');
   }
 
-  function downloadICS(filename, content){
-    const blob = new Blob([content], { type: 'text/calendar;charset=utf-8' });
+  // Saves a file to disk. Where the browser supports it (Chrome/Edge on
+  // desktop), this opens the real OS "Save As" dialog so the person picks
+  // the folder themselves. Everywhere else (Safari, Firefox, any mobile
+  // browser) there's no such API yet, so it falls back to a normal download
+  // with the right filename already filled in — the browser/OS decides the
+  // folder per whatever the person already has it set to do.
+  async function saveFile(filename, content, mimeType, pickerTypes){
+    if (window.showSaveFilePicker){
+      try{
+        const handle = await window.showSaveFilePicker({
+          suggestedName: filename,
+          types: pickerTypes ? [{ description: mimeType, accept: pickerTypes }] : undefined,
+        });
+        const writable = await handle.createWritable();
+        await writable.write(content);
+        await writable.close();
+        return true;
+      }catch(err){
+        if (err && err.name === 'AbortError') return false; // person cancelled the dialog
+        // fall through to the plain-download fallback below
+      }
+    }
+    const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url; a.download = filename;
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(()=> URL.revokeObjectURL(url), 2000);
+    return true;
+  }
+
+  function downloadICS(filename, content){
+    saveFile(filename, content, 'text/calendar', { 'text/calendar': ['.ics'] });
   }
 
   async function addToGoogleCalendar(title, dateStr, details, location){
@@ -1982,19 +2017,21 @@
 
   // ---------- backup / restore (a real safety net — everything on this
   // device, in one file you keep yourself, separate from the PDF export) ----------
-  document.getElementById('backupBtn').addEventListener('click', ()=>{
+  document.getElementById('backupBtn').addEventListener('click', async ()=>{
     const payload = {
       app: 'reel-board', version: 1,
       exportedAt: new Date().toISOString(),
       reels: reels,
     };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
     const stamp = new Date().toISOString().slice(0, 10);
-    a.href = url; a.download = `reel-board-backup-${stamp}.json`;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(()=> URL.revokeObjectURL(url), 2000);
+    const reel = activeReel();
+    // Backs up every project, but names the file after whichever one is
+    // currently open so it's identifiable — "all projects" if there's more
+    // than one, so it's clear it's not just that single project.
+    const namePart = reels.length > 1 && reel ? `${reel.name}-and-others` : (reel ? reel.name : 'projects');
+    const safeName = namePart.replace(/[^\w\- ]+/g, '').trim().slice(0, 60) || 'projects';
+    const filename = `reel-board-backup-${safeName}-${stamp}.json`;
+    await saveFile(filename, JSON.stringify(payload, null, 2), 'application/json', { 'application/json': ['.json'] });
   });
 
   document.getElementById('restoreBtn').addEventListener('click', ()=>{
