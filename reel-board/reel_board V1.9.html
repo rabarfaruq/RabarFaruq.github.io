@@ -1,0 +1,2525 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Reel Board</title>
+
+<!-- PWA: installable on Android + iPhone, works offline once loaded -->
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#14161b">
+<link rel="icon" href="./favicon.png?v=2" type="image/png">
+<link rel="apple-touch-icon" href="./icon-180.png?v=2">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Reel Board">
+<meta name="mobile-web-app-capable" content="yes">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-canvas:#14161b;
+    --bg-panel:#1a1d24;
+    --bg-node:#20232b;
+    --bg-node-hover:#262a33;
+    --border:#333744;
+    --border-soft:#2a2d36;
+    --text-primary:#f1efe9;
+    --text-secondary:#9a9da6;
+    --text-dim:#5c606b;
+    --gold:#f2b441;
+    --red:#e5595d;
+    --blue:#5ec8f2;
+    --violet:#b18cff;
+    --green:#4ade80;
+    --orange:#ff9466;
+    --pink:#f26fa8;
+    --status-progress:#f2b441;
+    --status-review:#b18cff;
+    --status-approved:#5ec8f2;
+    --status-done:#4ade80;
+    --status-blocked:#e5595d;
+  }
+  html.theme-light{
+    --bg-canvas:#f4f3f0;
+    --bg-panel:#ffffff;
+    --bg-node:#eeece7;
+    --bg-node-hover:#e4e1da;
+    --border:#d5d1c8;
+    --border-soft:#e3dfd6;
+    --text-primary:#1c1c22;
+    --text-secondary:#5c5f6b;
+    --text-dim:#8a8d97;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;background:var(--bg-canvas);color:var(--text-primary);font-family:'Inter',sans-serif;overflow:hidden;}
+  .app{display:flex;flex-direction:column;height:100vh;}
+
+  /* Header */
+  .topbar{
+    display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+    padding:10px 18px;background:var(--bg-panel);
+    border-bottom:1px solid var(--border-soft);
+    z-index:20;position:relative;
+  }
+  .brand{display:flex;align-items:center;gap:8px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:14px;letter-spacing:0.02em;color:var(--text-primary);}
+  .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--red);box-shadow:0 0 8px var(--red);animation:pulse 2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+  .sep{width:1px;height:20px;background:var(--border);}
+  #moreToggleBtn{display:flex;}
+
+  .topbar-more{
+    display:none;align-items:center;gap:10px;flex-wrap:wrap;
+    padding:8px 18px;background:var(--bg-panel);border-bottom:1px solid var(--border-soft);
+  }
+  .topbar-more.open{display:flex;}
+
+  .shootbar-toggle{
+    display:flex;width:100%;align-items:center;justify-content:space-between;gap:10px;
+    background:#17191f;border:none;border-bottom:1px solid var(--border-soft);
+    color:var(--text-secondary);font-family:'JetBrains Mono',monospace;font-size:12px;
+    padding:10px 18px;cursor:pointer;
+  }
+  .shootbar-toggle #shootbarToggleLabel{flex:1;min-width:0;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .shootbar-toggle-hint{color:var(--text-dim);font-size:10.5px;flex-shrink:0;}
+  .shootbar-toggle .chevron{transition:transform .2s;color:var(--text-dim);flex-shrink:0;}
+  .shootbar-toggle.open .chevron{transform:rotate(180deg);}
+
+  .shootbar{
+    display:none;gap:18px;align-items:flex-end;
+    padding:8px 18px;background:#17191f;border-bottom:1px solid var(--border-soft);
+  }
+  .shootbar.open{display:flex;}
+  .shoot-field{display:flex;flex-direction:column;gap:2px;min-width:160px;}
+  .shoot-field.wide{flex:1;}
+  .shoot-field input{
+    background:var(--bg-node);border:1px solid var(--border-soft);color:var(--text-primary);
+    border-radius:5px;padding:6px 9px;font-family:'Inter',sans-serif;font-size:14px;outline:none;
+    color-scheme:dark;
+  }
+  .shoot-field input:focus{border-color:var(--gold);}
+  .shoot-field .field-label{margin-bottom:0;}
+  .runtime-total{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-dim);margin-top:5px;}
+  .runtime-total.over{color:var(--red);}
+  select#reelSelect{
+    background:var(--bg-node);color:var(--text-primary);border:1px solid var(--border);
+    font-family:'JetBrains Mono',monospace;font-size:12.5px;padding:6px 10px;border-radius:6px;
+    max-width:220px;
+  }
+  .btn{
+    font-family:'Inter',sans-serif;font-weight:600;font-size:12.5px;
+    background:var(--bg-node);color:var(--text-primary);border:1px solid var(--border);
+    padding:7px 12px;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:6px;
+    transition:background .15s, border-color .15s;
+  }
+  .btn:hover{background:var(--bg-node-hover);border-color:var(--gold);}
+  .btn.primary{background:var(--gold);color:#1a1305;border-color:var(--gold);}
+  .btn.primary:hover{filter:brightness(1.08);}
+  .btn.danger:hover{border-color:var(--red);color:var(--red);}
+  .spacer{flex:1;}
+  .hint{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-dim);}
+
+  /* Layout */
+  .body{flex:1;display:flex;min-height:0;}
+  .rail{
+    width:180px;background:var(--bg-panel);border-right:1px solid var(--border-soft);
+    padding:14px 10px;display:flex;flex-direction:column;gap:6px;overflow-y:auto;
+  }
+  .rail-label{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em;margin:8px 6px 2px;}
+  .node-add{
+    display:flex;align-items:center;gap:9px;padding:8px 9px;border-radius:7px;
+    background:var(--bg-node);border:1px solid var(--border-soft);cursor:pointer;
+    font-size:12.5px;font-weight:500;color:var(--text-primary);text-align:left;
+    transition:transform .1s, border-color .15s;
+  }
+  .node-add:hover{border-color:var(--stage-color,var(--gold));transform:translateX(2px);}
+  .swatch{width:9px;height:9px;border-radius:2px;flex-shrink:0;background:var(--stage-color);}
+
+  .canvas-wrap{flex:1;position:relative;overflow:auto;background:
+    radial-gradient(circle, var(--border-soft) 1px, transparent 1px) 0 0/22px 22px, var(--bg-canvas);
+  }
+  .sprockets{
+    position:sticky;left:0;height:14px;width:100%;
+    background-image: repeating-linear-gradient(90deg, var(--border) 0 8px, transparent 8px 20px);
+    background-position:6px 6px;background-size:20px 2px;background-repeat:repeat-x;
+    opacity:.5;pointer-events:none;
+  }
+  .canvas{position:relative;width:2400px;height:1600px;}
+  svg.wires{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:visible;}
+  .wire-path{fill:none;stroke:var(--gold);stroke-width:2;opacity:.75;pointer-events:stroke;cursor:pointer;}
+  .wire-path:hover{stroke:var(--red);opacity:1;}
+  .wire-hit{fill:none;stroke:transparent;stroke-width:14;pointer-events:stroke;cursor:pointer;}
+  .drag-wire{fill:none;stroke:var(--text-secondary);stroke-width:2;stroke-dasharray:4 4;}
+
+  /* Node card */
+  .node{
+    position:absolute;width:290px;background:var(--bg-node);
+    border:1.5px solid var(--status-color, var(--border));border-radius:10px;
+    box-shadow:0 6px 18px rgba(0,0,0,.35);
+    font-size:15px;user-select:none;transition:border-color .2s;
+  }
+  .node.dragging{box-shadow:0 12px 30px rgba(0,0,0,.5);border-color:var(--gold);z-index:50;}
+  .node-head{
+    display:flex;align-items:center;gap:8px;padding:11px 12px;cursor:grab;
+    border-bottom:1px solid var(--border-soft);border-radius:10px 10px 0 0;
+    background:linear-gradient(180deg, rgba(255,255,255,.02), transparent);
+  }
+  .node-head:active{cursor:grabbing;}
+  .stage-tag{width:9px;height:9px;border-radius:2px;background:var(--stage-color);flex-shrink:0;box-shadow:0 0 6px var(--stage-color);}
+  .drag-handle{
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+    width:26px;height:26px;margin-left:-6px;border-radius:6px;color:var(--text-dim);
+    cursor:grab;touch-action:none;
+  }
+  .drag-handle:hover{color:var(--text-secondary);background:rgba(255,255,255,.04);}
+  .drag-handle:active{cursor:grabbing;color:var(--gold);background:rgba(255,255,255,.06);}
+  .node-title{
+    flex:1;background:transparent;border:none;color:var(--text-primary);
+    font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15.5px;outline:none;min-width:0;
+  }
+  .node-kill{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:17px;padding:0 2px;line-height:1;}
+  .node-kill:hover{color:var(--red);}
+  .node-body{padding:11px 12px 12px;display:flex;flex-direction:column;gap:9px;}
+  .field-label{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px;display:block;}
+  .node input[type=text], .node input[type=date], .node input[type=datetime-local], .node textarea, .node select{
+    width:100%;background:var(--bg-canvas);border:1px solid var(--border-soft);
+    color:var(--text-primary);border-radius:5px;padding:7px 9px;font-family:'Inter',sans-serif;
+    font-size:14.5px;outline:none;resize:none;color-scheme:dark;
+  }
+  .node textarea{min-height:60px;line-height:1.45;font-family:'JetBrains Mono',monospace;font-size:14px;direction:rtl;unicode-bidi:plain-text;text-align:start;}
+  .node input[type=text]{unicode-bidi:plain-text;}
+  .shoot-field input{unicode-bidi:plain-text;}
+  .node input[type=text]:focus, .node textarea:focus, .node select:focus{border-color:var(--gold);}
+  .row2{display:flex;gap:8px;}
+  .row2 > div{flex:1;min-width:0;}
+  select.status-pill{font-family:'JetBrains Mono',monospace;font-size:13px;padding:6px 7px;}
+
+  .cal-row{display:flex;gap:6px;margin-top:6px;}
+  .cal-btn{
+    flex:1;background:var(--bg-canvas);border:1px solid var(--border-soft);color:var(--text-secondary);
+    border-radius:5px;padding:6px 4px;font-family:'Inter',sans-serif;font-size:11.5px;cursor:pointer;
+    white-space:nowrap;
+  }
+  .cal-btn:hover{border-color:var(--gold);color:var(--gold);}
+
+  .tasklist{display:flex;flex-direction:column;gap:3px;padding:8px 9px;background:var(--bg-canvas);border:1px solid var(--border-soft);border-radius:6px;max-height:260px;overflow-y:auto;}
+  .task-summary{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--stage-color,var(--text-dim));text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;}
+  .task-phase{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;margin:8px 0 2px;}
+  .task-row{display:flex;align-items:flex-start;gap:8px;padding:3px 0;cursor:pointer;}
+  .task-row input[type=checkbox]{margin-top:3px;width:15px;height:15px;accent-color:var(--stage-color);flex-shrink:0;cursor:pointer;}
+  .task-text{flex:1;font-size:14px;line-height:1.45;color:var(--text-primary);unicode-bidi:plain-text;}
+  .task-row.done .task-text{color:var(--text-dim);text-decoration:line-through;}
+  .task-del{background:none;border:none;color:var(--text-dim);font-size:13px;cursor:pointer;opacity:0;flex-shrink:0;padding:0 3px;}
+  .task-row:hover .task-del{opacity:1;}
+  .task-del:hover{color:var(--red);}
+  .task-add{display:flex;gap:5px;margin-top:8px;}
+  .task-add input{flex:1;background:var(--bg-node);border:1px solid var(--border-soft);color:var(--text-primary);border-radius:4px;padding:6px 8px;font-size:13.5px;outline:none;}
+  .task-add button{background:var(--bg-node);border:1px solid var(--border-soft);color:var(--text-secondary);border-radius:4px;padding:6px 10px;font-size:13px;cursor:pointer;}
+  .task-add button:hover{border-color:var(--stage-color);color:var(--text-primary);}
+
+  .port{
+    position:absolute;top:42px;width:14px;height:14px;border-radius:50%;
+    background:var(--bg-canvas);border:2px solid var(--stage-color);cursor:crosshair;
+    pointer-events:auto;touch-action:none;
+  }
+  .port.out{right:-7px;}
+  .port.in{left:-7px;}
+  .port:hover{background:var(--stage-color);}
+
+  /* Bigger touch targets on any touch-primary device, regardless of screen
+     width — a width-only breakpoint misses a landscape iPad or tablet.
+     Sized so its vertical center lands at the same spot as the default dot
+     (top + half-height = 49px both ways), so cables still line up correctly. */
+  @media (pointer: coarse){
+    .port{width:24px;height:24px;top:37px;}
+    .port.out{right:-12px;}
+    .port.in{left:-12px;}
+    .drag-handle{width:34px;height:34px;}
+  }
+
+  .empty-hint{
+    position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);
+    text-align:center;color:var(--text-dim);font-family:'JetBrains Mono',monospace;font-size:12px;
+    width:280px;line-height:1.6;
+  }
+
+  /* ---------- Mobile layout ---------- */
+  @media (max-width: 780px){
+    .topbar{padding:8px 10px;gap:8px;}
+    .brand{font-size:12.5px;}
+    .sep{display:none;}
+    .hint{display:none;}
+    select#reelSelect{max-width:none;flex:1 1 100%;order:1;font-size:13px;}
+    .btn{font-size:12px;padding:8px 10px;order:2;flex:1 1 auto;justify-content:center;}
+    #newReelBtn{flex:1 1 auto;}
+    #moreToggleBtn{display:flex;flex:0 0 auto;}
+    .spacer{display:none;}
+
+    /* Collapsed by default on mobile — tap "⋯ More" to reveal these,
+       instead of every action button eating screen space up front. */
+    .topbar-more{display:none;padding:8px 10px;}
+    .topbar-more.open{display:flex;}
+    .topbar-more .btn{flex:1 1 auto;font-size:12px;padding:8px 10px;}
+
+    /* Same idea for location/date/scene — collapsed behind a small toggle
+       so the canvas is what you actually see first. */
+    .shootbar-toggle{display:flex;}
+    .shootbar{display:none;flex-direction:column;align-items:stretch;gap:8px;padding:8px 10px;}
+    .shootbar.open{display:flex;}
+    .shoot-field{min-width:0;width:100%;}
+    .shoot-field input{font-size:15px;padding:8px 10px;}
+
+    .body{flex-direction:column;}
+    .rail{
+      width:100%;height:auto;flex-direction:row;overflow-x:auto;overflow-y:hidden;
+      border-right:none;border-bottom:1px solid var(--border-soft);
+      padding:8px 10px;gap:8px;flex-shrink:0;
+      -webkit-overflow-scrolling:touch;
+    }
+    .rail-label{display:none;}
+    .node-add{flex-shrink:0;white-space:nowrap;padding:9px 12px;font-size:13px;}
+    .swatch{width:8px;height:8px;}
+
+    .canvas-wrap{flex:1;min-height:0;}
+    .node{width:82vw;max-width:320px;}
+
+    .node-title{font-size:16px;}
+    .field-label{font-size:12px;}
+    .node input[type=text], .node input[type=date], .node input[type=datetime-local], .node textarea, .node select{font-size:16px;padding:9px 10px;}
+    .task-text{font-size:15px;}
+  }
+
+  /* ---------- Printable export ---------- */
+  #printView{display:none;}
+  @media print{
+    body *{visibility:hidden;}
+    #printView, #printView *{visibility:visible;}
+    #printView{
+      display:block;position:absolute;top:0;left:0;width:100%;
+      background:#fff;color:#111;padding:0;font-family:Arial, sans-serif;
+    }
+    .pv-step{page-break-inside:avoid;border-bottom:1px solid #ccc;padding:14px 0;}
+    .pv-content, .pv-task{unicode-bidi:plain-text;}
+  }
+  .export-doc{
+    --doc-bg:#ffffff; --doc-text:#141414; --doc-dim:#5a5a5a; --doc-faint:#8a8a8a;
+    --doc-accent:#b8860b; --doc-line:#e2e2e2;
+  }
+  .export-doc h1{font-family:Georgia, serif;font-size:22px;margin:0 0 6px;color:var(--doc-text);}
+  .export-doc .pv-meta{font-size:12px;color:var(--doc-dim);margin-bottom:16px;line-height:1.6;}
+  .export-doc a{color:var(--doc-accent);text-decoration:underline;}
+  .export-doc .pv-step-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--doc-accent);text-transform:uppercase;letter-spacing:.06em;}
+  .export-doc h2{font-size:15px;margin:2px 0 6px;color:var(--doc-text);}
+  .export-doc .pv-stage{font-weight:400;color:var(--doc-dim);font-size:12px;}
+  .export-doc .pv-row{font-size:12px;color:var(--doc-dim);margin-bottom:8px;}
+  .export-doc .pv-content{font-size:13.5px;line-height:1.65;white-space:pre-wrap;unicode-bidi:plain-text;margin-bottom:8px;color:var(--doc-text);}
+  .export-doc .pv-phase{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--doc-faint);margin:8px 0 2px;}
+  .export-doc .pv-task{font-size:13.5px;line-height:1.55;unicode-bidi:plain-text;color:var(--doc-text);}
+  .export-doc .pv-step{padding:14px 0;border-bottom:1px solid var(--doc-line);}
+
+  /* ---------- Editable preview overlay ---------- */
+  .preview-overlay{
+    position:fixed;inset:0;background:#fff;z-index:200;
+    display:none;flex-direction:column;
+  }
+  .preview-overlay.open{display:flex;}
+  .preview-toolbar{
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    padding:10px 16px;background:#f3f3f1;border-bottom:1px solid #ddd;color:#444;
+    font-family:'Inter',sans-serif;font-size:12.5px;
+  }
+  .preview-toolbar .btn{background:#fff;color:#222;border-color:#ccc;}
+  .preview-toolbar .btn.primary{background:var(--gold);color:#1a1305;border-color:var(--gold);}
+  .preview-toolbar .btn.on{border-color:var(--gold);color:#8a6300;}
+  #previewContent{
+    flex:1;overflow:auto;padding:26px 30px;outline:none;caret-color:var(--doc-text);
+    max-width:760px;margin:0 auto;width:100%;background:var(--doc-bg);
+  }
+  @media (max-width:780px){ #previewContent{padding:18px;} .preview-toolbar span{flex:1 1 100%;} }
+
+  /* dark mode for the preview screen only — printed/exported output stays light */
+  .preview-overlay.dark{background:#14161b;}
+  .preview-overlay.dark .preview-toolbar{background:#1a1d24;color:#c7c9d1;border-color:#333744;}
+  .preview-overlay.dark .preview-toolbar .btn{background:#20232b;color:#f1efe9;border-color:#3a3e4a;}
+  .preview-overlay.dark #previewContent{
+    --doc-bg:#14161b; --doc-text:#f1efe9; --doc-dim:#b6b9c2; --doc-faint:#8b8e98;
+    --doc-accent:#f2b441; --doc-line:#333744;
+    background:var(--doc-bg);
+  }
+
+  /* ---------- Node deadline + reminders ---------- */
+  #remindersBtn.on{border-color:var(--green);color:var(--green);}
+
+  /* ---------- Equipment & Budget panel ---------- */
+  .equip-overlay{
+    position:fixed;inset:0;background:rgba(10,11,14,.65);z-index:210;
+    display:none;align-items:center;justify-content:center;padding:20px;
+  }
+  .equip-overlay.open{display:flex;}
+  .equip-panel{
+    width:100%;max-width:480px;max-height:85vh;background:var(--bg-panel);
+    border:1px solid var(--border);border-radius:12px;overflow:hidden;
+    display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(0,0,0,.5);
+  }
+  .equip-head{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:14px 16px;border-bottom:1px solid var(--border-soft);
+    font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:14px;color:var(--text-primary);
+  }
+  .equip-head span#equipReelName{color:var(--gold);}
+  .equip-body{padding:16px;overflow-y:auto;flex:1;}
+  .equip-section-label{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;}
+  .equip-row{
+    display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border-soft);
+  }
+  .equip-row .equip-name{flex:1;color:var(--text-primary);font-size:14px;unicode-bidi:plain-text;}
+  .equip-row .equip-cost{color:var(--gold);font-family:'JetBrains Mono',monospace;font-size:13px;flex-shrink:0;}
+  .equip-row .task-del{opacity:1;font-size:15px;}
+  .equip-add-row{display:flex;gap:8px;margin-top:10px;}
+  .equip-add-row input{flex:1;min-width:0;}
+  .equip-add-row input, #budgetTotalInput, #budgetNotesInput{
+    background:var(--bg-canvas);border:1px solid var(--border-soft);color:var(--text-primary);
+    border-radius:5px;padding:8px 10px;font-family:'Inter',sans-serif;font-size:14px;outline:none;
+    width:100%;unicode-bidi:plain-text;
+  }
+  #budgetTotalInput{margin-bottom:12px;}
+  #budgetNotesInput{min-height:70px;resize:vertical;font-family:'JetBrains Mono',monospace;font-size:13px;}
+  .equip-add-row input:focus, #budgetTotalInput:focus, #budgetNotesInput:focus{border-color:var(--gold);}
+  .equip-empty{color:var(--text-dim);font-size:13px;padding:8px 0;}
+  @media (max-width:780px){
+    .equip-add-row{flex-wrap:wrap;}
+    .equip-add-row input{flex:1 1 100%;}
+    .equip-add-row button{flex:1 1 100%;}
+  }
+
+  /* ---------- Mini modal (replaces native alert/confirm/prompt) ---------- */
+  .mini-overlay{
+    position:fixed;inset:0;background:rgba(10,11,14,.7);z-index:300;
+    display:none;align-items:center;justify-content:center;padding:20px;
+  }
+  .mini-overlay.open{display:flex;}
+  .mini-modal{
+    width:100%;max-width:360px;background:var(--bg-panel);border:1px solid var(--border);
+    border-radius:12px;padding:18px;box-shadow:0 20px 50px rgba(0,0,0,.5);
+  }
+  .mini-title{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15px;color:var(--text-primary);margin-bottom:8px;}
+  .mini-msg{font-size:13px;color:var(--text-secondary);line-height:1.5;margin-bottom:10px;display:none;}
+  .mini-overlay.show-msg .mini-msg{display:block;}
+  .welcome-modal{max-width:420px;}
+  .welcome-steps{display:block !important;}
+  .welcome-step{margin-bottom:10px;}
+  .welcome-step b{color:var(--gold);}
+
+  .settings-modal{max-width:400px;max-height:85vh;overflow-y:auto;}
+  .settings-section{margin-bottom:16px;}
+  .settings-section input[type=text]{
+    width:100%;background:var(--bg-canvas);border:1px solid var(--border-soft);color:var(--text-primary);
+    border-radius:6px;padding:8px 10px;font-family:'Inter',sans-serif;font-size:13.5px;outline:none;
+  }
+  .settings-section input[type=text]:focus{border-color:var(--gold);}
+  .settings-theme-row{display:flex;gap:8px;}
+  .settings-theme-btn{
+    flex:1;background:var(--bg-canvas);border:1px solid var(--border-soft);color:var(--text-secondary);
+    border-radius:6px;padding:8px 10px;font-family:'Inter',sans-serif;font-size:13px;cursor:pointer;
+  }
+  .settings-theme-btn.active{border-color:var(--gold);color:var(--gold);background:rgba(242,180,65,0.08);}
+  .settings-color-row{display:flex;align-items:center;gap:10px;margin-top:8px;}
+  .settings-color-row:first-of-type{margin-top:6px;}
+  .settings-color-input{
+    width:36px;height:36px;padding:0;border:1px solid var(--border-soft);border-radius:8px;
+    background:none;cursor:pointer;flex-shrink:0;
+  }
+  .settings-color-label{font-size:12.5px;color:var(--text-secondary);}
+
+  .backup-picker-modal{max-width:400px;}
+  .backup-picker-actions-row{display:flex;gap:14px;margin-bottom:8px;}
+  .backup-picker-link{
+    background:none;border:none;color:var(--gold);font-size:12px;font-family:'Inter',sans-serif;
+    cursor:pointer;padding:0;text-decoration:underline;
+  }
+  .backup-picker-list{
+    max-height:280px;overflow-y:auto;border:1px solid var(--border-soft);border-radius:8px;
+    padding:4px;margin-bottom:14px;
+  }
+  .backup-picker-row{
+    display:flex;align-items:center;gap:10px;padding:9px 8px;border-radius:6px;cursor:pointer;
+  }
+  .backup-picker-row:hover{background:var(--bg-canvas);}
+  .backup-picker-row input[type=checkbox]{width:17px;height:17px;accent-color:var(--gold);flex-shrink:0;cursor:pointer;}
+  .backup-picker-row span{font-size:13.5px;color:var(--text-primary);unicode-bidi:plain-text;}
+  #miniInput{
+    display:none;width:100%;background:var(--bg-canvas);border:1px solid var(--border-soft);
+    color:var(--text-primary);border-radius:6px;padding:9px 10px;font-size:14px;outline:none;
+    margin-bottom:14px;unicode-bidi:plain-text;
+  }
+  .mini-overlay.show-input #miniInput{display:block;}
+  #miniInput:focus{border-color:var(--gold);}
+  .mini-actions{display:flex;justify-content:flex-end;gap:8px;}
+  .mini-overlay.hide-cancel #miniCancelBtn{display:none;}
+
+  /* ---------- Expand-to-edit big textarea ---------- */
+  .content-label-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:3px;}
+  .content-label-row .field-label{margin-bottom:0;}
+  .expand-btn{
+    background:none;border:1px solid var(--border-soft);color:var(--text-secondary);
+    border-radius:4px;padding:2px 7px;font-family:'JetBrains Mono',monospace;font-size:10.5px;
+    cursor:pointer;flex-shrink:0;
+  }
+  .expand-btn:hover{border-color:var(--gold);color:var(--gold);}
+
+  .details-toggle{
+    width:100%;text-align:left;background:none;border:1px dashed var(--border-soft);
+    color:var(--text-dim);border-radius:6px;padding:6px 9px;font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;cursor:pointer;
+  }
+  .details-toggle:hover{border-color:var(--gold);color:var(--gold);}
+  .node-details{display:none;flex-direction:column;gap:9px;margin-top:2px;}
+  .node-details.open{display:flex;}
+
+  .expand-overlay{
+    position:fixed;inset:0;background:var(--bg-canvas);z-index:250;
+    display:none;flex-direction:column;
+  }
+  .expand-overlay.open{display:flex;}
+  .expand-head{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+    padding:12px 18px;background:var(--bg-panel);border-bottom:1px solid var(--border-soft);
+  }
+  .expand-head span{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15px;color:var(--text-primary);}
+  .expand-actions{display:flex;gap:8px;}
+
+  .expand-page-wrap{
+    flex:1;overflow-y:auto;display:flex;justify-content:center;
+    scrollbar-width:auto;scrollbar-color:var(--gold) var(--bg-panel);
+  }
+  .expand-page-wrap::-webkit-scrollbar{width:14px;}
+  .expand-page-wrap::-webkit-scrollbar-track{background:var(--bg-panel);}
+  .expand-page-wrap::-webkit-scrollbar-thumb{background:var(--gold);border-radius:7px;border:3px solid var(--bg-panel);}
+  #expandTextarea{
+    width:100%;max-width:820px;background:var(--bg-canvas);border:none;color:var(--text-primary);
+    padding:36px 30px;font-family:'JetBrains Mono',monospace;font-size:14.5px;line-height:1.55;
+    outline:none;resize:none;unicode-bidi:plain-text;overflow-y:hidden;
+  }
+  .expand-scroll-hint{
+    display:none;align-items:center;gap:6px;
+    font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--gold);
+    background:rgba(242,180,65,0.12);border:1px solid rgba(242,180,65,0.3);
+    padding:5px 10px;border-radius:999px;white-space:nowrap;
+  }
+  .expand-scroll-hint.show{display:flex;}
+  @media (max-width:780px){
+    #expandTextarea{font-size:16px;padding:20px 16px;line-height:1.5;}
+    .expand-head span{font-size:13.5px;}
+  }
+</style>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+
+<div class="app" id="app">
+  <div class="topbar">
+    <div class="brand"><span class="dot"></span> REEL BOARD</div>
+    <button class="btn primary" id="installBtn" style="display:none;">📲 Install App</button>
+    <div class="sep"></div>
+    <select id="reelSelect"></select>
+    <button class="btn primary" id="newReelBtn">+ New Project</button>
+    <button class="btn" id="moreToggleBtn">⋯ More</button>
+    <button class="btn" id="settingsBtn" title="Settings">⚙️</button>
+    <div class="spacer"></div>
+    <span class="hint">drag from a dot to connect · click a cable to cut it</span>
+  </div>
+  <div class="topbar-more" id="topbarMore">
+    <button class="btn" id="renameBtn">Rename</button>
+    <button class="btn" id="loadExampleBtn">+ Load example</button>
+    <button class="btn" id="importBtn">Import PDF / doc</button>
+    <input type="file" id="importFile" accept=".pdf,.docx,.doc,.txt" style="display:none" />
+    <button class="btn" id="remindersBtn">🔔 Reminders: Off</button>
+    <button class="btn" id="equipBtn">🎒 Equipment & Budget</button>
+    <button class="btn primary" id="exportBtn">Export steps (PDF)</button>
+    <button class="btn" id="backupBtn">💾 Backup projects…</button>
+    <button class="btn" id="restoreBtn">📂 Restore backup</button>
+    <input type="file" id="restoreFile" accept=".json" style="display:none" />
+    <button class="btn danger" id="deleteReelBtn">Delete Project</button>
+  </div>
+  <button class="shootbar-toggle" id="shootbarToggle">
+    <span id="shootbarToggleLabel">📍 Shoot info</span>
+    <span class="shootbar-toggle-hint" id="shootbarToggleHint">tap to expand</span>
+    <span class="chevron">▾</span>
+  </button>
+  <div class="shootbar" id="shootbar">
+    <div class="shoot-field">
+      <span class="field-label">Location</span>
+      <input type="text" id="shootLocation" placeholder="Address, or paste a Google Maps link" />
+      <div class="cal-row">
+        <button type="button" class="cal-btn" id="shootMapsBtn">📍 Open in Maps</button>
+      </div>
+    </div>
+    <div class="shoot-field">
+      <span class="field-label">Date</span>
+      <input type="date" id="shootDate" placeholder="Shoot date" />
+      <div class="cal-row">
+        <button type="button" class="cal-btn" id="shootGcalBtn">📅 Google Cal</button>
+        <button type="button" class="cal-btn" id="shootIcsBtn">⬇ .ics</button>
+      </div>
+    </div>
+    <div class="shoot-field wide">
+      <span class="field-label">Scene / what happens here</span>
+      <input type="text" id="shootBeat" placeholder="One line — what this reel covers on location" />
+    </div>
+    <div class="shoot-field">
+      <span class="field-label">Target runtime</span>
+      <input type="text" id="shootTargetRuntime" placeholder="e.g. 1:00" />
+      <div class="runtime-total" id="runtimeTotal"></div>
+    </div>
+  </div>
+  <div class="body">
+    <div class="rail" id="rail">
+      <div class="rail-label">Add to board</div>
+      <!-- node-add buttons injected -->
+    </div>
+    <div class="canvas-wrap" id="canvasWrap">
+      <div class="sprockets"></div>
+      <div class="canvas" id="canvas">
+        <svg class="wires" id="wires"></svg>
+        <!-- nodes injected -->
+      </div>
+      <div class="sprockets" style="position:absolute;bottom:0;"></div>
+    </div>
+  </div>
+</div>
+
+<div id="printView" class="export-doc"></div>
+
+<div class="preview-overlay" id="previewOverlay">
+  <div class="preview-toolbar">
+    <span>Edit the text below, then export — this doesn't change your board.</span>
+    <button class="btn" id="previewDarkBtn">🌙 Dark mode</button>
+    <button class="btn" id="previewCloseBtn">Close</button>
+    <button class="btn primary" id="previewPrintBtn">Save as PDF / Print</button>
+  </div>
+  <div id="previewContent" class="export-doc" contenteditable="true"></div>
+</div>
+
+<div class="equip-overlay" id="equipOverlay">
+  <div class="equip-panel">
+    <div class="equip-head">
+      <span>Equipment & Budget — <span id="equipReelName"></span></span>
+      <button class="node-kill" id="equipCloseBtn" title="Close">✕</button>
+    </div>
+    <div class="equip-body">
+      <div class="equip-section-label">Gear needed for this reel</div>
+      <div id="equipList"></div>
+      <div class="equip-add-row">
+        <input type="text" id="equipNameInput" placeholder="Equipment name" />
+        <input type="text" id="equipCostInput" placeholder="Cost (optional)" />
+        <button class="btn" id="equipAddBtn">Add</button>
+      </div>
+
+      <div class="equip-section-label" style="margin-top:18px;">Budget</div>
+      <span class="field-label">Total budget for this reel</span>
+      <input type="text" id="budgetTotalInput" placeholder="e.g. $450 or 600,000 IQD" />
+      <span class="field-label" style="margin-top:10px;">Budget notes / breakdown</span>
+      <textarea id="budgetNotesInput" placeholder="Crew fees, rentals, permits, transport…"></textarea>
+    </div>
+  </div>
+</div>
+
+<div class="mini-overlay" id="miniOverlay">
+  <div class="mini-modal">
+    <div class="mini-title" id="miniTitle"></div>
+    <div class="mini-msg" id="miniMsg"></div>
+    <input type="text" id="miniInput" />
+    <div class="mini-actions">
+      <button class="btn" id="miniCancelBtn">Cancel</button>
+      <button class="btn primary" id="miniOkBtn">OK</button>
+    </div>
+  </div>
+</div>
+
+<div class="expand-overlay" id="expandOverlay">
+  <div class="expand-head">
+    <span id="expandTitle"></span>
+    <span class="expand-scroll-hint" id="expandScrollHint">↕ more below — scroll to see all of it</span>
+    <div class="expand-actions">
+      <button class="btn" id="expandCloseBtn">Close without saving</button>
+      <button class="btn primary" id="expandSaveBtn">Save</button>
+    </div>
+  </div>
+  <div class="expand-page-wrap" id="expandPageWrap">
+    <textarea id="expandTextarea"></textarea>
+  </div>
+</div>
+
+<div class="mini-overlay" id="installOverlay">
+  <div class="mini-modal">
+    <div class="mini-title" id="installTitle">Install this app</div>
+    <div class="mini-msg" id="installMsg" style="display:block;"></div>
+    <div class="mini-actions">
+      <button class="btn primary" id="installOkBtn">Got it</button>
+    </div>
+  </div>
+</div>
+
+<div class="mini-overlay" id="welcomeOverlay">
+  <div class="mini-modal welcome-modal">
+    <div class="mini-title">Welcome to Reel Board</div>
+    <div class="mini-msg welcome-steps">
+      <div class="welcome-step"><b>1.</b> Tap a stage on the left — Script, Voice Over, etc. — to add it to the board.</div>
+      <div class="welcome-step"><b>2.</b> Drag a card by its ⠿ handle to move it. Drag from the dot on its right edge to another card to connect them in order.</div>
+      <div class="welcome-step"><b>3.</b> Everything saves automatically as you type — no save button needed.</div>
+      <div class="welcome-step"><b>4.</b> When you're ready, use <b>Export steps (PDF)</b> to hand off the plan, or <b>Backup this project</b> to keep a copy.</div>
+    </div>
+    <div class="mini-actions">
+      <button class="btn primary" id="welcomeOkBtn">Got it, let's go</button>
+    </div>
+  </div>
+</div>
+
+<div class="mini-overlay" id="backupPickerOverlay">
+  <div class="mini-modal backup-picker-modal">
+    <div class="mini-title">Choose what to back up</div>
+    <div class="mini-msg" style="display:block;">Pick one, several, or all of your projects.</div>
+    <div class="backup-picker-actions-row">
+      <button type="button" class="backup-picker-link" id="backupSelectAllBtn">Select all</button>
+      <button type="button" class="backup-picker-link" id="backupSelectNoneBtn">Select none</button>
+    </div>
+    <div class="backup-picker-list" id="backupPickerList"></div>
+    <div class="mini-actions">
+      <button class="btn" id="backupPickerCancelBtn">Cancel</button>
+      <button class="btn primary" id="backupPickerSaveBtn">Backup selected</button>
+    </div>
+  </div>
+</div>
+
+<div class="mini-overlay" id="settingsOverlay">
+  <div class="mini-modal settings-modal">
+    <div class="mini-title">Settings</div>
+
+    <div class="settings-section">
+      <span class="field-label">Your name</span>
+      <input type="text" id="settingsName" placeholder="Shown on exported PDFs" />
+    </div>
+
+    <div class="settings-section">
+      <span class="field-label">Appearance</span>
+      <div class="settings-theme-row">
+        <button type="button" class="settings-theme-btn" id="themeDarkBtn">🌙 Dark</button>
+        <button type="button" class="settings-theme-btn" id="themeLightBtn">☀️ Light</button>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <span class="field-label">Accent color</span>
+      <div class="settings-color-row">
+        <input type="color" class="settings-color-input" id="colorAccent" />
+        <span class="settings-color-label">Buttons, highlights, cables</span>
+      </div>
+    </div>
+
+    <button type="button" class="details-toggle settings-group-toggle" id="stageColorsToggle">▾ Stage colors (6)</button>
+    <div class="node-details settings-color-group" id="stageColorsGroup">
+      <div class="settings-color-row"><input type="color" class="settings-color-input" data-stage="voiceover" /><span class="settings-color-label">Voice Over</span></div>
+      <div class="settings-color-row"><input type="color" class="settings-color-input" data-stage="videographer" /><span class="settings-color-label">Videographer</span></div>
+      <div class="settings-color-row"><input type="color" class="settings-color-input" data-stage="photographer" /><span class="settings-color-label">Photographer</span></div>
+      <div class="settings-color-row"><input type="color" class="settings-color-input" data-stage="graphic" /><span class="settings-color-label">Graphic Design</span></div>
+      <div class="settings-color-row"><input type="color" class="settings-color-input" data-stage="motion" /><span class="settings-color-label">Motion Graphic</span></div>
+      <div class="settings-color-row"><input type="color" class="settings-color-input" data-stage="social" /><span class="settings-color-label">Social Media</span></div>
+    </div>
+
+    <button type="button" class="details-toggle settings-group-toggle" id="statusColorsToggle">▾ Status border colors (5)</button>
+    <div class="node-details settings-color-group" id="statusColorsGroup">
+      <div class="settings-color-row"><input type="color" class="settings-color-input" data-status="progress" /><span class="settings-color-label">In progress</span></div>
+      <div class="settings-color-row"><input type="color" class="settings-color-input" data-status="review" /><span class="settings-color-label">Review</span></div>
+      <div class="settings-color-row"><input type="color" class="settings-color-input" data-status="approved" /><span class="settings-color-label">Approved</span></div>
+      <div class="settings-color-row"><input type="color" class="settings-color-input" data-status="done" /><span class="settings-color-label">Done</span></div>
+      <div class="settings-color-row"><input type="color" class="settings-color-input" data-status="blocked" /><span class="settings-color-label">Blocked</span></div>
+    </div>
+
+    <div class="mini-actions">
+      <button class="btn" id="settingsResetBtn">Reset to defaults</button>
+      <button class="btn primary" id="settingsCloseBtn">Done</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const STAGES = {
+    script:      { label:"Script",       color:"var(--gold)",   contentLabel:"Script content",      contentPlaceholder:"What the script says, shot by shot…" },
+    voiceover:   { label:"Voice Over",    color:"var(--red)",    contentLabel:"VO line(s)",           contentPlaceholder:"Exact line(s) the VO artist reads…" },
+    videographer:{ label:"Videographer",  color:"var(--blue)",   contentLabel:"Shot notes",           contentPlaceholder:"Camera, angles, movement…" },
+    photographer:{ label:"Photographer",  color:"var(--violet)", contentLabel:"Shot notes",           contentPlaceholder:"Stills needed, framing…" },
+    graphic:     { label:"Graphic Design",color:"var(--green)",  contentLabel:"Layout",               contentPlaceholder:"Composition, text placement, brand elements…" },
+    motion:      { label:"Motion Graphic",color:"var(--orange)", contentLabel:"Layout",               contentPlaceholder:"Sequence, timing, transitions, captions…" },
+    social:      { label:"Social Media",  color:"var(--pink)",   contentLabel:"Caption / copy",        contentPlaceholder:"Caption text, hashtags, tags, link in bio…" },
+    custom:      { label:"Custom",        color:"var(--text-secondary)", contentLabel:"Notes",        contentPlaceholder:"Details…" }
+  };
+  const PLATFORM_OPTIONS = ["Instagram","TikTok","Facebook","YouTube","Snapchat","X / Twitter","LinkedIn","Other"];
+  const POST_TYPE_OPTIONS = ["Reel","Story","Post","Carousel","Live","Short","Other"];
+  const STATUS_OPTIONS = ["Not started","In progress","Review","Approved","Done","Blocked"];
+  const STATUS_COLORS = {
+    "In progress": "var(--status-progress)",
+    "Review": "var(--status-review)",
+    "Approved": "var(--status-approved)",
+    "Done": "var(--status-done)",
+    "Blocked": "var(--status-blocked)",
+    // "Not started" is intentionally left out — it falls back to the
+    // card's normal neutral border, so only statuses that mean something
+    // has actually happened get a colored border.
+  };
+  function applyStatusColor(el, status){
+    const color = STATUS_COLORS[status];
+    if (color) el.style.setProperty('--status-color', color);
+    else el.style.removeProperty('--status-color');
+  }
+
+  // ---------- settings: profile name, light/dark theme, custom colors ----------
+  const DEFAULT_COLORS = {
+    gold:"#f2b441", red:"#e5595d", blue:"#5ec8f2", violet:"#b18cff",
+    green:"#4ade80", orange:"#ff9466", pink:"#f26fa8",
+    "status-progress":"#f2b441", "status-review":"#b18cff", "status-approved":"#5ec8f2",
+    "status-done":"#4ade80", "status-blocked":"#e5595d"
+  };
+  let currentSettings = { name:'', theme:'dark', colors: Object.assign({}, DEFAULT_COLORS) };
+
+  function applySettings(settings){
+    const root = document.documentElement;
+    root.classList.toggle('theme-light', settings.theme === 'light');
+    Object.entries(settings.colors || {}).forEach(([key, val])=>{
+      root.style.setProperty('--' + key, val);
+    });
+  }
+
+  async function loadSettings(){
+    try{
+      const r = await store.get('settings');
+      if (r && r.value){
+        const parsed = JSON.parse(r.value);
+        currentSettings = {
+          name: parsed.name || '',
+          theme: parsed.theme === 'light' ? 'light' : 'dark',
+          colors: Object.assign({}, DEFAULT_COLORS, parsed.colors || {}),
+        };
+      }
+    }catch(e){ /* fall back to defaults */ }
+    applySettings(currentSettings);
+  }
+
+  async function saveSettings(){
+    applySettings(currentSettings);
+    try{ await store.set('settings', JSON.stringify(currentSettings)); }catch(e){}
+  }
+
+  function populateSettingsUI(){
+    document.getElementById('settingsName').value = currentSettings.name;
+    document.getElementById('themeDarkBtn').classList.toggle('active', currentSettings.theme === 'dark');
+    document.getElementById('themeLightBtn').classList.toggle('active', currentSettings.theme === 'light');
+    document.getElementById('colorAccent').value = currentSettings.colors.gold;
+    document.querySelectorAll('.settings-color-input[data-stage]').forEach(input=>{
+      const stage = input.dataset.stage;
+      const colorKey = { voiceover:'red', videographer:'blue', photographer:'violet', graphic:'green', motion:'orange', social:'pink' }[stage];
+      input.value = currentSettings.colors[colorKey];
+    });
+    document.querySelectorAll('.settings-color-input[data-status]').forEach(input=>{
+      const colorKey = 'status-' + input.dataset.status;
+      input.value = currentSettings.colors[colorKey];
+    });
+    document.getElementById('stageColorsGroup').classList.remove('open');
+    document.getElementById('stageColorsToggle').textContent = '▾ Stage colors (6)';
+    document.getElementById('statusColorsGroup').classList.remove('open');
+    document.getElementById('statusColorsToggle').textContent = '▾ Status border colors (5)';
+  }
+  const TYPE_OPTIONS = ["In-house","Freelance"];
+
+  const TASK_TEMPLATES = {
+    videographer: [
+      { phase:"Pre-shoot", items:[
+        "Confirm shot list & script with producer",
+        "Scout / confirm location & lighting",
+        "Check batteries, memory cards & backup gear",
+        "Confirm date, time & place with crew",
+      ]},
+      { phase:"On shoot", items:[
+        "Capture every shot on the list",
+        "Get extra b-roll / coverage",
+        "Multiple takes & varied angles",
+        "Check exposure, focus & audio levels",
+      ]},
+      { phase:"Deliverables", items:[
+        "Hand off raw footage (format/res agreed)",
+        "Backup footage in 2 places",
+        "Files named / organized",
+        "Delivered by deadline",
+      ]},
+    ],
+    photographer: [
+      { phase:"Pre-shoot", items:[
+        "Confirm shot list & subjects with producer",
+        "Prepare lighting setup & props",
+        "Check gear, lenses, batteries & cards",
+        "Confirm date, time & place with crew",
+      ]},
+      { phase:"On shoot", items:[
+        "Capture every shot on the list",
+        "Multiple angles & framings per subject",
+        "Check focus, exposure & composition",
+        "Get product + lifestyle shots if needed",
+      ]},
+      { phase:"Deliverables", items:[
+        "Raw + edited images delivered",
+        "Best selects flagged for the team",
+        "Files named / organized",
+        "Delivered by deadline",
+      ]},
+    ],
+    graphic: [
+      { phase:"Pre-production", items:[
+        "Receive layout / brief from producer",
+        "Confirm brand assets: logo, fonts, colors",
+      ]},
+      { phase:"Production", items:[
+        "Design static graphics per layout",
+        "Add text overlays & CTAs as briefed",
+        "Keep brand look consistent",
+      ]},
+      { phase:"Deliverables", items:[
+        "Draft shared for review",
+        "Final export settings confirmed",
+        "Final file delivered by deadline",
+      ]},
+    ],
+    motion: [
+      { phase:"Pre-production", items:[
+        "Receive layout / brief from producer",
+        "Confirm brand assets & intro/outro templates",
+        "Review script & VO timing to sync animation",
+      ]},
+      { phase:"Production", items:[
+        "Build intro / outro & lower-thirds",
+        "Add captions synced to VO / dialogue",
+        "Add transitions & sound sync",
+      ]},
+      { phase:"Deliverables", items:[
+        "Draft shared for review before final render",
+        "Final export settings confirmed",
+        "Final file delivered by deadline",
+      ]},
+    ],
+    social: [
+      { phase:"Before posting", items:[
+        "Confirm final asset received from editor",
+        "Write caption + hashtags",
+        "Pick platform and post type",
+        "Get caption/asset approved",
+      ]},
+      { phase:"Scheduling", items:[
+        "Set post date & time",
+        "Schedule in platform / scheduling tool",
+        "Double-check link in bio / tags",
+      ]},
+      { phase:"After posting", items:[
+        "Confirm it went live",
+        "Check engagement after 24h",
+        "Reply to comments / DMs",
+      ]},
+    ],
+  };
+
+  function buildTasksFromTemplate(type){
+    const template = TASK_TEMPLATES[type];
+    if (!template) return null;
+    const tasks = [];
+    template.forEach(group=>{
+      group.items.forEach(text=>{
+        tasks.push({ id: uid('task'), phase: group.phase, text, done: false });
+      });
+    });
+    return tasks;
+  }
+
+  let reels = [];       // [{id,name,nodes:[],edges:[]}]
+  let activeId = null;
+  let saveTimer = null;
+
+  const els = {
+    reelSelect: document.getElementById('reelSelect'),
+    rail: document.getElementById('rail'),
+    canvas: document.getElementById('canvas'),
+    wires: document.getElementById('wires'),
+    canvasWrap: document.getElementById('canvasWrap'),
+    shootLocation: document.getElementById('shootLocation'),
+    shootDate: document.getElementById('shootDate'),
+    shootBeat: document.getElementById('shootBeat'),
+  };
+
+  function uid(prefix){ return prefix + '_' + Math.random().toString(36).slice(2,9); }
+
+  // ---------- self-contained dialogs (never rely on native alert/confirm/prompt —
+  // those can be silently blocked in sandboxed previews, which is why "Delete"
+  // could look like it did nothing) ----------
+  const miniOverlay = document.getElementById('miniOverlay');
+  const miniTitle = document.getElementById('miniTitle');
+  const miniMsg = document.getElementById('miniMsg');
+  const miniInput = document.getElementById('miniInput');
+  const miniOk = document.getElementById('miniOkBtn');
+  const miniCancel = document.getElementById('miniCancelBtn');
+  let miniResolve = null;
+
+  function closeMini(result){
+    miniOverlay.classList.remove('open');
+    if (miniResolve){ const r = miniResolve; miniResolve = null; r(result); }
+  }
+  miniOk.addEventListener('click', ()=>{
+    closeMini(miniOverlay.classList.contains('show-input') ? miniInput.value : true);
+  });
+  miniCancel.addEventListener('click', ()=> closeMini(miniOverlay.classList.contains('show-input') ? null : false));
+  miniInput.addEventListener('keydown', e=>{
+    if (e.key === 'Enter'){ e.preventDefault(); closeMini(miniInput.value); }
+    if (e.key === 'Escape'){ e.preventDefault(); closeMini(null); }
+  });
+
+  function showAlert(title, message){
+    return new Promise(resolve=>{
+      miniResolve = resolve;
+      miniTitle.textContent = title;
+      miniMsg.textContent = message || '';
+      miniOverlay.className = 'mini-overlay open show-msg hide-cancel';
+      miniOk.textContent = 'OK';
+      setTimeout(()=>{ try{ miniOk.focus(); }catch(e){} }, 30);
+    });
+  }
+  function showConfirm(title, message){
+    return new Promise(resolve=>{
+      miniResolve = resolve;
+      miniTitle.textContent = title;
+      miniMsg.textContent = message || '';
+      miniOverlay.className = 'mini-overlay open show-msg';
+      miniOk.textContent = 'Delete';
+      setTimeout(()=>{ try{ miniCancel.focus(); }catch(e){} }, 30);
+    });
+  }
+  function showPrompt(title, defaultValue){
+    return new Promise(resolve=>{
+      miniResolve = resolve;
+      miniTitle.textContent = title;
+      miniInput.value = defaultValue || '';
+      miniOverlay.className = 'mini-overlay open show-input';
+      miniOk.textContent = 'OK';
+      setTimeout(()=>{ try{ miniInput.focus(); miniInput.select(); }catch(e){} }, 30);
+    });
+  }
+
+  // ---------- expand-to-edit big textarea (for long script / VO / notes) ----------
+  const expandOverlay = document.getElementById('expandOverlay');
+  const expandTitle = document.getElementById('expandTitle');
+  const expandTextarea = document.getElementById('expandTextarea');
+  const expandPageWrap = document.getElementById('expandPageWrap');
+  let expandingNode = null;
+  let expandingTextareaEl = null;
+
+  // The textarea grows to fit ALL of its content (like a page in Word) instead
+  // of scrolling internally — the page wrapper around it scrolls instead, so
+  // what you see is the actual document, not a small window onto it.
+  function autoGrowExpandTextarea(){
+    expandTextarea.style.height = 'auto';
+    expandTextarea.style.height = expandTextarea.scrollHeight + 'px';
+  }
+
+  function updateExpandScrollHint(){
+    const hint = document.getElementById('expandScrollHint');
+    if (!hint || !expandPageWrap) return;
+    const overflowing = expandPageWrap.scrollHeight > expandPageWrap.clientHeight + 4;
+    const atBottom = expandPageWrap.scrollTop + expandPageWrap.clientHeight >= expandPageWrap.scrollHeight - 4;
+    hint.classList.toggle('show', overflowing && !atBottom);
+  }
+
+  function openExpandEditor(node, label, sourceTextareaEl){
+    expandingNode = node;
+    expandingTextareaEl = sourceTextareaEl;
+    expandTitle.textContent = `${node.title} — ${label}`;
+    expandTextarea.value = node.content || '';
+    expandOverlay.classList.add('open');
+    setTimeout(()=>{
+      try{ expandTextarea.focus(); }catch(e){}
+      autoGrowExpandTextarea();
+      if (expandPageWrap) expandPageWrap.scrollTop = 0;
+      updateExpandScrollHint();
+    }, 30);
+  }
+
+  expandTextarea.addEventListener('input', ()=>{ autoGrowExpandTextarea(); updateExpandScrollHint(); });
+  if (expandPageWrap) expandPageWrap.addEventListener('scroll', updateExpandScrollHint);
+  window.addEventListener('resize', ()=>{ autoGrowExpandTextarea(); updateExpandScrollHint(); });
+
+  document.getElementById('expandSaveBtn').addEventListener('click', ()=>{
+    if (expandingNode){
+      expandingNode.content = expandTextarea.value;
+      if (expandingTextareaEl) expandingTextareaEl.value = expandTextarea.value;
+      scheduleSave();
+    }
+    expandOverlay.classList.remove('open');
+    expandingNode = null; expandingTextareaEl = null;
+  });
+  document.getElementById('expandCloseBtn').addEventListener('click', ()=>{
+    expandOverlay.classList.remove('open');
+    expandingNode = null; expandingTextareaEl = null;
+  });
+
+  // Works both inside Claude (uses its synced storage) and as a plain
+  // downloaded file, online or fully offline (uses the browser's own
+  // localStorage, which needs no internet connection at all).
+  const LS_PREFIX = 'reelboard:';
+  const store = {
+    async get(key){
+      if (window.storage){
+        try{ return await window.storage.get(key, false); }
+        catch(e){ /* key not found or storage unavailable — fall through */ }
+      }
+      const v = localStorage.getItem(LS_PREFIX + key);
+      return v === null ? null : { key, value: v };
+    },
+    async set(key, value){
+      if (window.storage){
+        try{ return await window.storage.set(key, value, false); }
+        catch(e){ /* fall through to local */ }
+      }
+      localStorage.setItem(LS_PREFIX + key, value);
+      return { key, value };
+    },
+    async delete(key){
+      if (window.storage){
+        try{ return await window.storage.delete(key, false); }
+        catch(e){ /* fall through */ }
+      }
+      localStorage.removeItem(LS_PREFIX + key);
+    }
+  };
+
+  function activeReel(){ return reels.find(r => r.id === activeId); }
+
+  function defaultReel(name){
+    return {
+      id: uid('reel'), name: name || 'Untitled reel', nodes: [], edges: [],
+      location: '', date: '', beat: '', targetRuntime: '',
+      equipment: [], budgetTotal: '', budgetNotes: ''
+    };
+  }
+
+  // ---------- persistence ----------
+  async function loadAll(){
+    try{
+      const idx = await store.get('reel-index');
+      if (idx && idx.value){
+        const ids = JSON.parse(idx.value);
+        const loaded = [];
+        for (const id of ids){
+          try{
+            const r = await store.get('reel:' + id);
+            if (r && r.value) loaded.push(JSON.parse(r.value));
+          }catch(e){ /* skip missing */ }
+        }
+        reels = loaded;
+      }
+    }catch(e){ console.error('load failed', e); }
+
+    if (reels.length === 0){
+      const r = defaultReel('My first project');
+      reels = [r];
+      activeId = r.id;
+      await persistReel(r);
+      await persistIndex();
+    } else {
+      activeId = reels[0].id;
+    }
+  }
+
+  async function persistIndex(){
+    try{ await store.set('reel-index', JSON.stringify(reels.map(r=>r.id))); }
+    catch(e){ console.error('index save failed', e); }
+  }
+  async function persistReel(reel){
+    try{ await store.set('reel:' + reel.id, JSON.stringify(reel)); }
+    catch(e){ console.error('reel save failed', e); }
+  }
+  function scheduleSave(){
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(()=>{ const r = activeReel(); if (r) persistReel(r); }, 250);
+  }
+
+  // ---------- rail ----------
+  function buildRail(){
+    Object.entries(STAGES).forEach(([key, def])=>{
+      if (key === 'custom') return;
+      const btn = document.createElement('div');
+      btn.className = 'node-add';
+      btn.style.setProperty('--stage-color', def.color);
+      btn.innerHTML = `<span class="swatch"></span> ${def.label}`;
+      btn.onclick = ()=> addNode(key);
+      els.rail.appendChild(btn);
+    });
+    const divider = document.createElement('div');
+    divider.className = 'rail-label';
+    divider.textContent = 'Other';
+    els.rail.appendChild(divider);
+    const customBtn = document.createElement('div');
+    customBtn.className = 'node-add';
+    customBtn.style.setProperty('--stage-color', STAGES.custom.color);
+    customBtn.innerHTML = `<span class="swatch"></span> Custom stage`;
+    customBtn.onclick = ()=> addNode('custom');
+    els.rail.appendChild(customBtn);
+  }
+
+  // ---------- reel select ----------
+  function buildReelSelect(){
+    els.reelSelect.innerHTML = '';
+    reels.forEach(r=>{
+      const opt = document.createElement('option');
+      opt.value = r.id; opt.textContent = r.name;
+      if (r.id === activeId) opt.selected = true;
+      els.reelSelect.appendChild(opt);
+    });
+  }
+
+  // ---------- nodes ----------
+  function addNode(type){
+    const reel = activeReel();
+    const def = STAGES[type];
+    const count = reel.nodes.length;
+    const node = {
+      id: uid('node'),
+      type,
+      title: def.label,
+      x: 60 + (count % 5) * 260,
+      y: 40 + Math.floor(count / 5) * 210,
+      assignee: '',
+      role: 'In-house',
+      status: 'Not started',
+      content: '',
+      deadline: '',
+      reminded: false,
+      platform: '',
+      postType: '',
+      duration: '',
+      tasks: buildTasksFromTemplate(type)
+    };
+    reel.nodes.push(node);
+    scheduleSave();
+    renderCanvas();
+  }
+
+  function removeNode(nodeId){
+    const reel = activeReel();
+    reel.nodes = reel.nodes.filter(n => n.id !== nodeId);
+    reel.edges = reel.edges.filter(e => e.from !== nodeId && e.to !== nodeId);
+    scheduleSave();
+    renderCanvas();
+  }
+
+  function renderCanvas(){
+    els.canvas.querySelectorAll('.node').forEach(n=>n.remove());
+    const reel = activeReel();
+    if (!reel){ return; }
+
+    els.shootLocation.value = reel.location || '';
+    els.shootDate.value = toDateInputValue(reel.date);
+    els.shootBeat.value = reel.beat || '';
+    document.getElementById('shootTargetRuntime').value = reel.targetRuntime || '';
+    updateShootbarToggleLabel(reel);
+
+    if (reel.nodes.length === 0){
+      const hint = document.createElement('div');
+      hint.className = 'empty-hint';
+      hint.textContent = 'Add stages from the left, drag them into place, then drag from a dot on one card to a dot on another to connect the pipeline.';
+      els.canvas.appendChild(hint);
+    } else {
+      els.canvas.querySelectorAll('.empty-hint').forEach(h=>h.remove());
+    }
+
+    reel.nodes.forEach(node => els.canvas.appendChild(buildNodeEl(node)));
+    drawWires();
+    updateRuntimeTotal();
+  }
+
+  // ---------- runtime / duration helpers ----------
+  // Accepts "0:30", "1:00", "1:05:30", or a bare number of seconds like "45".
+  function parseDurationToSeconds(str){
+    if (!str) return null;
+    const trimmed = str.trim();
+    if (/^\d+$/.test(trimmed)) return parseInt(trimmed, 10);
+    const parts = trimmed.split(':').map(p => parseInt(p, 10));
+    if (parts.some(isNaN)) return null;
+    let seconds = 0;
+    for (const p of parts) seconds = seconds * 60 + p;
+    return seconds;
+  }
+  function formatSecondsToClock(totalSeconds){
+    totalSeconds = Math.round(totalSeconds);
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = totalSeconds % 60;
+    const mm = h > 0 ? String(m).padStart(2, '0') : String(m);
+    const ss = String(s).padStart(2, '0');
+    return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
+  }
+  function updateRuntimeTotal(){
+    const reel = activeReel();
+    const totalEl = document.getElementById('runtimeTotal');
+    if (!reel || !totalEl) return;
+    let totalSeconds = 0;
+    let anyParsed = false;
+    reel.nodes.forEach(n=>{
+      const s = parseDurationToSeconds(n.duration);
+      if (s !== null){ totalSeconds += s; anyParsed = true; }
+    });
+    if (!anyParsed){
+      totalEl.textContent = '';
+      totalEl.classList.remove('over');
+      return;
+    }
+    const targetSeconds = parseDurationToSeconds(reel.targetRuntime);
+    let text = `Planned total: ${formatSecondsToClock(totalSeconds)}`;
+    let over = false;
+    if (targetSeconds !== null){
+      over = totalSeconds > targetSeconds;
+      text += over ? ` (over by ${formatSecondsToClock(totalSeconds - targetSeconds)})` : ` (within target)`;
+    }
+    totalEl.textContent = text;
+    totalEl.classList.toggle('over', over);
+  }
+
+  document.getElementById('shootTargetRuntime').addEventListener('input', e=>{
+    const reel = activeReel();
+    if (!reel) return;
+    reel.targetRuntime = e.target.value;
+    scheduleSave();
+    updateRuntimeTotal();
+  });
+
+  function updateShootbarToggleLabel(reel){
+    const toggleLabel = document.getElementById('shootbarToggleLabel');
+    if (!toggleLabel || !reel) return;
+    const bits = [reel.location, reel.date].filter(Boolean);
+    toggleLabel.textContent = bits.length ? `📍 ${bits.join(' · ')}` : '📍 Shoot info';
+  }
+
+  [els.shootLocation, els.shootDate, els.shootBeat].forEach(input=>{
+    input.addEventListener('input', ()=>{
+      const reel = activeReel();
+      if (!reel) return;
+      reel.location = els.shootLocation.value;
+      reel.date = els.shootDate.value;
+      reel.beat = els.shootBeat.value;
+      updateShootbarToggleLabel(reel);
+      scheduleSave();
+    });
+  });
+
+  document.getElementById('shootGcalBtn').addEventListener('click', ()=>{
+    const reel = activeReel();
+    if (!reel) return;
+    addToGoogleCalendar(`${reel.name} — shoot day`, reel.date, reel.beat, reel.location);
+  });
+  document.getElementById('shootIcsBtn').addEventListener('click', ()=>{
+    const reel = activeReel();
+    if (!reel) return;
+    addToICS(`${reel.name} — shoot day`, reel.date, reel.beat, reel.location);
+  });
+  document.getElementById('shootMapsBtn').addEventListener('click', async ()=>{
+    const reel = activeReel();
+    if (!reel) return;
+    if (!reel.location || !reel.location.trim()){
+      await showAlert('No location set', 'Type a location first, then open it in Maps.');
+      return;
+    }
+    window.open(buildGoogleMapsUrl(reel.location), '_blank');
+  });
+
+  // ---------- Equipment & Budget panel ----------
+  function renderEquipPanel(){
+    const reel = activeReel();
+    if (!reel) return;
+    document.getElementById('equipReelName').textContent = reel.name;
+
+    const list = document.getElementById('equipList');
+    list.innerHTML = '';
+    if (!reel.equipment || reel.equipment.length === 0){
+      const empty = document.createElement('div');
+      empty.className = 'equip-empty';
+      empty.textContent = 'No equipment added yet.';
+      list.appendChild(empty);
+    } else {
+      reel.equipment.forEach(item=>{
+        const row = document.createElement('div');
+        row.className = 'equip-row';
+        row.innerHTML = `
+          <span class="equip-name">${escapeHtml(item.name)}</span>
+          ${item.cost ? `<span class="equip-cost">${escapeHtml(item.cost)}</span>` : ''}
+          <button type="button" class="task-del" title="Remove">✕</button>
+        `;
+        row.querySelector('.task-del').addEventListener('click', ()=>{
+          reel.equipment = reel.equipment.filter(e => e.id !== item.id);
+          scheduleSave();
+          renderEquipPanel();
+        });
+        list.appendChild(row);
+      });
+    }
+
+    document.getElementById('budgetTotalInput').value = reel.budgetTotal || '';
+    document.getElementById('budgetNotesInput').value = reel.budgetNotes || '';
+  }
+
+  document.getElementById('equipBtn').addEventListener('click', async ()=>{
+    if (!activeReel()){ await showAlert('No project selected', 'Pick or create a project first.'); return; }
+    renderEquipPanel();
+    document.getElementById('equipOverlay').classList.add('open');
+  });
+  document.getElementById('equipCloseBtn').addEventListener('click', ()=>{
+    document.getElementById('equipOverlay').classList.remove('open');
+  });
+
+  document.getElementById('equipAddBtn').addEventListener('click', ()=>{
+    const reel = activeReel();
+    if (!reel) return;
+    const nameInput = document.getElementById('equipNameInput');
+    const costInput = document.getElementById('equipCostInput');
+    const name = nameInput.value.trim();
+    if (!name) return;
+    if (!reel.equipment) reel.equipment = [];
+    reel.equipment.push({ id: uid('equip'), name, cost: costInput.value.trim() });
+    nameInput.value = ''; costInput.value = '';
+    scheduleSave();
+    renderEquipPanel();
+  });
+  document.getElementById('equipNameInput').addEventListener('keydown', e=>{
+    if (e.key === 'Enter'){ e.preventDefault(); document.getElementById('equipAddBtn').click(); }
+  });
+
+  document.getElementById('budgetTotalInput').addEventListener('input', e=>{
+    const reel = activeReel(); if (!reel) return;
+    reel.budgetTotal = e.target.value; scheduleSave();
+  });
+  document.getElementById('budgetNotesInput').addEventListener('input', e=>{
+    const reel = activeReel(); if (!reel) return;
+    reel.budgetNotes = e.target.value; scheduleSave();
+  });
+
+  function buildNodeEl(node){
+    const def = STAGES[node.type];
+    const el = document.createElement('div');
+    el.className = 'node';
+    el.style.left = node.x + 'px';
+    el.style.top = node.y + 'px';
+    el.style.setProperty('--stage-color', def.color);
+    applyStatusColor(el, node.status);
+    el.dataset.id = node.id;
+
+    el.innerHTML = `
+      <div class="node-head">
+        <span class="drag-handle" title="Drag to move">
+          <svg width="12" height="18" viewBox="0 0 12 18" fill="none">
+            <circle cx="3" cy="3" r="1.5" fill="currentColor"/>
+            <circle cx="9" cy="3" r="1.5" fill="currentColor"/>
+            <circle cx="3" cy="9" r="1.5" fill="currentColor"/>
+            <circle cx="9" cy="9" r="1.5" fill="currentColor"/>
+            <circle cx="3" cy="15" r="1.5" fill="currentColor"/>
+            <circle cx="9" cy="15" r="1.5" fill="currentColor"/>
+          </svg>
+        </span>
+        <span class="stage-tag"></span>
+        <input type="text" class="node-title" value="${escapeAttr(node.title)}" />
+        <button class="node-kill" title="Remove">✕</button>
+      </div>
+      <div class="node-body">
+        <div>
+          <div class="content-label-row">
+            <span class="field-label">${def.contentLabel}</span>
+            <button type="button" class="expand-btn" title="Expand to edit">⤢ Expand</button>
+          </div>
+          <textarea placeholder="${escapeAttr(def.contentPlaceholder)}">${escapeHtml(node.content)}</textarea>
+        </div>
+        ${node.tasks ? '<div class="tasklist"></div>' : ''}
+        <button type="button" class="details-toggle">▾ Details (assign, status, deadline…)</button>
+        <div class="node-details">
+          ${node.type === 'social' ? `
+          <div class="row2">
+            <div>
+              <span class="field-label">Platform</span>
+              <select class="platform"></select>
+            </div>
+            <div>
+              <span class="field-label">Post type</span>
+              <select class="post-type"></select>
+            </div>
+          </div>` : ''}
+          <div class="row2">
+            <div>
+              <span class="field-label">Assigned to</span>
+              <input type="text" class="assignee" placeholder="Name" value="${escapeAttr(node.assignee)}" />
+            </div>
+            <div>
+              <span class="field-label">Type</span>
+              <select class="role"></select>
+            </div>
+          </div>
+          <div class="row2">
+            <div>
+              <span class="field-label">Status</span>
+              <select class="status status-pill"></select>
+            </div>
+            <div>
+              <span class="field-label">Duration</span>
+              <input type="text" class="duration" placeholder="e.g. 0:30" value="${escapeAttr(node.duration || '')}" />
+            </div>
+          </div>
+          <div>
+            <span class="field-label">${node.type === 'social' ? 'Post date & time' : 'Deadline'}</span>
+            <input type="${node.type === 'social' ? 'datetime-local' : 'date'}" class="deadline" value="${node.type === 'social' ? toDateTimeInputValue(node.deadline) : toDateInputValue(node.deadline)}" />
+            <div class="cal-row">
+              <button type="button" class="cal-btn gcal-btn">📅 Google Cal</button>
+              <button type="button" class="cal-btn ics-btn">⬇ .ics</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="port in"></div>
+      <div class="port out"></div>
+    `;
+
+    // populate selects
+    const roleSel = el.querySelector('.role');
+    TYPE_OPTIONS.forEach(o=>{
+      const opt = document.createElement('option'); opt.value=o; opt.textContent=o;
+      if (o === node.role) opt.selected = true;
+      roleSel.appendChild(opt);
+    });
+    const statusSel = el.querySelector('.status');
+    STATUS_OPTIONS.forEach(o=>{
+      const opt = document.createElement('option'); opt.value=o; opt.textContent=o;
+      if (o === node.status) opt.selected = true;
+      statusSel.appendChild(opt);
+    });
+
+    let platformSel = null, postTypeSel = null;
+    if (node.type === 'social'){
+      platformSel = el.querySelector('.platform');
+      const platformOpt0 = document.createElement('option');
+      platformOpt0.value = ''; platformOpt0.textContent = 'Choose platform…';
+      platformSel.appendChild(platformOpt0);
+      PLATFORM_OPTIONS.forEach(o=>{
+        const opt = document.createElement('option'); opt.value=o; opt.textContent=o;
+        if (o === node.platform) opt.selected = true;
+        platformSel.appendChild(opt);
+      });
+
+      postTypeSel = el.querySelector('.post-type');
+      const postTypeOpt0 = document.createElement('option');
+      postTypeOpt0.value = ''; postTypeOpt0.textContent = 'Choose type…';
+      postTypeSel.appendChild(postTypeOpt0);
+      POST_TYPE_OPTIONS.forEach(o=>{
+        const opt = document.createElement('option'); opt.value=o; opt.textContent=o;
+        if (o === node.postType) opt.selected = true;
+        postTypeSel.appendChild(opt);
+      });
+    }
+
+    // field bindings
+    el.querySelector('.node-title').addEventListener('input', e=>{ node.title = e.target.value; scheduleSave(); });
+    const contentTextarea = el.querySelector('textarea');
+    contentTextarea.addEventListener('input', e=>{ node.content = e.target.value; scheduleSave(); });
+    el.querySelector('.expand-btn').addEventListener('click', ()=>{
+      openExpandEditor(node, def.contentLabel, contentTextarea);
+    });
+    el.querySelector('.assignee').addEventListener('input', e=>{ node.assignee = e.target.value; scheduleSave(); });
+    roleSel.addEventListener('change', e=>{ node.role = e.target.value; scheduleSave(); });
+    statusSel.addEventListener('change', e=>{
+      node.status = e.target.value;
+      applyStatusColor(el, node.status);
+      scheduleSave();
+    });
+    if (platformSel) platformSel.addEventListener('change', e=>{ node.platform = e.target.value; scheduleSave(); });
+    if (postTypeSel) postTypeSel.addEventListener('change', e=>{ node.postType = e.target.value; scheduleSave(); });
+    el.querySelector('.deadline').addEventListener('input', e=>{
+      node.deadline = e.target.value;
+      node.reminded = false;
+      scheduleSave();
+    });
+    el.querySelector('.duration').addEventListener('input', e=>{
+      node.duration = e.target.value;
+      scheduleSave();
+      updateRuntimeTotal();
+    });
+    el.querySelector('.gcal-btn').addEventListener('click', ()=>{
+      const reel = activeReel();
+      const title = `${node.title} — ${reel ? reel.name : ''}`;
+      addToGoogleCalendar(title, node.deadline, node.content, reel ? reel.location : '');
+    });
+    el.querySelector('.ics-btn').addEventListener('click', ()=>{
+      const reel = activeReel();
+      const title = `${node.title} — ${reel ? reel.name : ''}`;
+      addToICS(title, node.deadline, node.content, reel ? reel.location : '');
+    });
+    el.querySelector('.node-kill').addEventListener('click', ()=> removeNode(node.id));
+    el.querySelector('.details-toggle').addEventListener('click', e=>{
+      const details = el.querySelector('.node-details');
+      const isOpen = details.classList.toggle('open');
+      e.target.textContent = isOpen ? '▴ Hide details' : '▾ Details (assign, status, deadline…)';
+    });
+
+    if (node.tasks){
+      renderTasklist(el.querySelector('.tasklist'), node);
+    }
+
+    // If this card already has real details filled in (an existing project
+    // being reopened), show them by default — collapsing only makes sense
+    // for a fresh, empty card so nothing already-important gets hidden.
+    const hasDetails = node.assignee || node.duration || node.deadline || node.platform || node.postType;
+    if (hasDetails){
+      el.querySelector('.node-details').classList.add('open');
+      el.querySelector('.details-toggle').textContent = '▴ Hide details';
+    }
+
+    // dragging — Pointer Events cover mouse, touch, and pen with one API,
+    // so this works the same on a trackpad, phone, or tablet.
+    const head = el.querySelector('.node-head');
+    head.style.touchAction = 'none';
+    head.addEventListener('pointerdown', (e)=>{
+      if (e.target.closest('input, button')) return;
+      e.preventDefault();
+      try{ head.setPointerCapture(e.pointerId); }catch(err){}
+      const startX = e.clientX, startY = e.clientY;
+      const origX = node.x, origY = node.y;
+      el.classList.add('dragging');
+      function onMove(ev){
+        if (ev.pointerId !== e.pointerId) return;
+        node.x = origX + (ev.clientX - startX);
+        node.y = origY + (ev.clientY - startY);
+        el.style.left = node.x + 'px';
+        el.style.top = node.y + 'px';
+        drawWires();
+      }
+      function onUp(ev){
+        if (ev.pointerId !== e.pointerId) return;
+        el.classList.remove('dragging');
+        head.removeEventListener('pointermove', onMove);
+        head.removeEventListener('pointerup', onUp);
+        head.removeEventListener('pointercancel', onUp);
+        try{ head.releasePointerCapture(e.pointerId); }catch(err){}
+        scheduleSave();
+      }
+      head.addEventListener('pointermove', onMove);
+      head.addEventListener('pointerup', onUp);
+      head.addEventListener('pointercancel', onUp);
+    });
+
+    // connection dragging from output port
+    const outPort = el.querySelector('.port.out');
+    outPort.style.touchAction = 'none';
+    outPort.addEventListener('pointerdown', (e)=>{
+      e.preventDefault(); e.stopPropagation();
+      startWireDrag(node.id, e);
+    });
+
+    return el;
+  }
+
+  function renderTasklist(container, node){
+    container.innerHTML = '';
+    const done = node.tasks.filter(t=>t.done).length;
+    const summary = document.createElement('div');
+    summary.className = 'task-summary';
+    summary.textContent = `${done}/${node.tasks.length} done`;
+    container.appendChild(summary);
+
+    let lastPhase = null;
+    node.tasks.forEach(task=>{
+      if (task.phase !== lastPhase){
+        const ph = document.createElement('div');
+        ph.className = 'task-phase';
+        ph.textContent = task.phase;
+        container.appendChild(ph);
+        lastPhase = task.phase;
+      }
+      const row = document.createElement('label');
+      row.className = 'task-row' + (task.done ? ' done' : '');
+      row.innerHTML = `
+        <input type="checkbox" ${task.done ? 'checked' : ''} />
+        <span class="task-text">${escapeHtml(task.text)}</span>
+        <button type="button" class="task-del" title="Remove task">✕</button>
+      `;
+      row.querySelector('input').addEventListener('change', e=>{
+        task.done = e.target.checked;
+        scheduleSave();
+        renderTasklist(container, node);
+      });
+      row.querySelector('.task-del').addEventListener('click', e=>{
+        e.preventDefault();
+        node.tasks = node.tasks.filter(t=>t.id !== task.id);
+        scheduleSave();
+        renderTasklist(container, node);
+      });
+      container.appendChild(row);
+    });
+
+    const addRow = document.createElement('div');
+    addRow.className = 'task-add';
+    addRow.innerHTML = `<input type="text" placeholder="+ add task" /><button type="button">Add</button>`;
+    const addInput = addRow.querySelector('input');
+    function addTask(){
+      const text = addInput.value.trim();
+      if (!text) return;
+      node.tasks.push({ id: uid('task'), phase: 'Custom', text, done: false });
+      addInput.value = '';
+      scheduleSave();
+      renderTasklist(container, node);
+    }
+    addRow.querySelector('button').addEventListener('click', addTask);
+    addInput.addEventListener('keydown', e=>{ if (e.key === 'Enter'){ e.preventDefault(); addTask(); } });
+    container.appendChild(addRow);
+  }
+
+  function escapeHtml(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+  function escapeAttr(s){ return (s||'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+  // ---------- wires ----------
+  function portPos(nodeId, side){
+    const el = els.canvas.querySelector(`.node[data-id="${nodeId}"]`);
+    if (!el) return null;
+    const node = activeReel().nodes.find(n=>n.id===nodeId);
+    const x = side === 'out' ? node.x + el.offsetWidth : node.x;
+    const y = node.y + 49;
+    return {x, y};
+  }
+
+  function bezier(p1, p2){
+    const dx = Math.max(60, Math.abs(p2.x - p1.x) * 0.5);
+    return `M ${p1.x} ${p1.y} C ${p1.x+dx} ${p1.y}, ${p2.x-dx} ${p2.y}, ${p2.x} ${p2.y}`;
+  }
+
+  function drawWires(){
+    const reel = activeReel();
+    els.wires.innerHTML = '';
+    if (!reel) return;
+    reel.edges.forEach((edge, idx)=>{
+      const p1 = portPos(edge.from, 'out');
+      const p2 = portPos(edge.to, 'in');
+      if (!p1 || !p2) return;
+      const d = bezier(p1, p2);
+      const hit = document.createElementNS('http://www.w3.org/2000/svg','path');
+      hit.setAttribute('d', d); hit.setAttribute('class','wire-hit');
+      hit.addEventListener('click', ()=>{ reel.edges.splice(idx,1); scheduleSave(); drawWires(); });
+      const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+      path.setAttribute('d', d); path.setAttribute('class','wire-path');
+      els.wires.appendChild(hit);
+      els.wires.appendChild(path);
+    });
+  }
+
+  let dragWireEl = null, dragFrom = null;
+  function startWireDrag(fromId, e){
+    dragFrom = fromId;
+    dragWireEl = document.createElementNS('http://www.w3.org/2000/svg','path');
+    dragWireEl.setAttribute('class','drag-wire');
+    els.wires.appendChild(dragWireEl);
+
+    const portEl = e.target;
+    try{ portEl.setPointerCapture(e.pointerId); }catch(err){}
+
+    function onMove(ev){
+      if (ev.pointerId !== e.pointerId) return;
+      const wrapRect = els.canvas.getBoundingClientRect();
+      const p1 = portPos(fromId, 'out');
+      const p2 = { x: ev.clientX - wrapRect.left, y: ev.clientY - wrapRect.top };
+      dragWireEl.setAttribute('d', bezier(p1, p2));
+    }
+    function onUp(ev){
+      if (ev.pointerId !== e.pointerId) return;
+      portEl.removeEventListener('pointermove', onMove);
+      portEl.removeEventListener('pointerup', onUp);
+      portEl.removeEventListener('pointercancel', onUp);
+      try{ portEl.releasePointerCapture(e.pointerId); }catch(err){}
+      if (dragWireEl){ dragWireEl.remove(); dragWireEl = null; }
+      // With the port holding pointer capture, ev.target stays the port itself
+      // throughout the drag — so find what's actually under the finger/cursor
+      // at release time instead, which is what makes drop-to-connect work on
+      // touchscreens the same way it does with a mouse.
+      const dropEl = document.elementFromPoint(ev.clientX, ev.clientY);
+      const targetNode = dropEl ? dropEl.closest('.node') : null;
+      if (targetNode){
+        const toId = targetNode.dataset.id;
+        if (toId !== fromId){
+          const reel = activeReel();
+          const exists = reel.edges.some(ed=>ed.from===fromId && ed.to===toId);
+          if (!exists){
+            reel.edges.push({ from: fromId, to: toId });
+            scheduleSave();
+          }
+        }
+      }
+      drawWires();
+      dragFrom = null;
+    }
+    portEl.addEventListener('pointermove', onMove);
+    portEl.addEventListener('pointerup', onUp);
+    portEl.addEventListener('pointercancel', onUp);
+  }
+
+  // ---------- example campaign seed ----------
+  function makeNode(type, title, content, extra){
+    const def = STAGES[type];
+    const base = {
+      id: uid('node'), type, title: title || def.label,
+      x: 0, y: 0, assignee: '', role: 'In-house', status: 'Not started',
+      content: content || '', deadline: '', reminded: false,
+      platform: '', postType: '', duration: '',
+      tasks: buildTasksFromTemplate(type)
+    };
+    return Object.assign(base, extra || {});
+  }
+
+  function buildReelFromSpec(spec){
+    const reel = defaultReel(spec.name);
+    reel.location = spec.location;
+    reel.date = spec.date || '';
+    reel.beat = spec.beat;
+    const nodes = spec.nodes.map((n, i)=>{
+      const node = makeNode(n.type, n.title, n.content);
+      node.x = 40 + i * 260;
+      node.y = 40;
+      return node;
+    });
+    reel.nodes = nodes;
+    reel.edges = [];
+    for (let i = 0; i < nodes.length - 1; i++){
+      reel.edges.push({ from: nodes[i].id, to: nodes[i+1].id });
+    }
+    return reel;
+  }
+
+  const A_STUDIO_REELS = [
+    { name:"A STUDIO — Reel 1: City chaos", location:"City street / office exterior, night",
+      beat:"0% color — stark black & white, hard contrast, fast cuts. Business owner lost among ads and city noise.",
+      nodes:[
+        { type:"script", title:"Reel 1 — Script", content:"Visual: 0% color (harsh black & white, high contrast), fast cuts between marketing billboards and city speed.\n\nScene: the young business owner stands in the heart of the city. Aggressive commercial lighting and empty, fast ads surround him. Hands in his pockets, he feels lost among all the superficial slogans.\n\nEnding transition: he silently closes the car door — city noise cuts out completely — the car heads toward the mountain road." },
+        { type:"voiceover", title:"Reel 1 — VO (aimed at the business owner)", content:"کاتێک هەموو شتێک لە دەوروبەرت دەبێتە ژاوەژاو و بەڵێنی درۆینەی بازاڕ... هەست دەکەیت ڕاستگۆیی ون بووە. دروستکردنی ناوبانگێک کە بەرگە بگرێت، لە ناو ئەم هەموو ڕووکەشییەدا ئەستەمە.\n\nتۆش وەک هەر خاوەن کارێک کە بە دوای بەهاداری و جێگیریدا دەگەڕێت... پێویستە ئەم ژاوەژاوە جێبهێڵیت." },
+        { type:"videographer", title:"Reel 1 — Camera", content:"Fast cuts between billboards and street chaos. High-contrast B&W grade, 0% saturation. Final shot: car door closes in silence, sound cuts hard, car pulls away toward the mountains." },
+      ]},
+    { name:"A STUDIO — Reel 2: Flight to the mountains", location:"Mountain road at the foot of the range, dusk",
+      beat:"5% color — pale warm sepia starting to appear. Old man and young man meet.",
+      nodes:[
+        { type:"script", title:"Reel 2 — Script", content:"Visual: 5% color, pale warm sepia tone emerging, chaos fading.\n\nScene: the young man reaches the foot of a calm mountain range. Ambient sound shifts from city noise to gentle wind and calm water. Camera: car shot winding along the mountain road. An old man sits on a rock gazing at the horizon; the young man sits apart, facing him but with his back turned. The old man picks up his cane and walks over; shot shifts to the young man noticing him; the old man sits beside him." },
+        { type:"voiceover", title:"Reel 2 — VO + dialogue", content:"VO: \"ژیان لە شاردا ڕەنگە ئاسانتر بێت... بەاڵم تێگەیشتن لە مانای ڕاستەقینەی، قورسترە. لەناو ئەو هەموو ئاسانکاری و ڕووکەشییەدا، جێگیری ون دەبێت.\"\n\nOld man: \"بۆچی ئەوەندە ماندوو دیاریت؟ چی وای لێکردوویت ڕوو بکەیتە ئەم چۆڵوانییە؟\"\nYoung man: \"لە شارێکەوە دێم کە هەموو شتێک تێیدا بە خێرایی دەگۆڕێت... بە دوای جێگیرییەکدا دەگەڕێم کڕیارەکانم بتوانن پشتی پێ ببەستن.\"\nOld man: \"منیش ڕۆژێک لە ڕۆژان وەک تۆ لەناو ئەو ژاوەژاوە بووم... کاتێک شار ماندووت دەکات، شاخ بیرت دەهێنێتەوە کە یاسای ڕاستەقینەی جێگیری چییە... بەاڵم تێگەیشتن لەم یاسایە، باجێکی هەیە کە دەبێت فێری ببی.\"" },
+        { type:"videographer", title:"Reel 2 — Camera", content:"Car shot winding through mountain roads. Old man on rock gazing at horizon, young man sits apart at first, then old man walks to him and sits. End on young man's amazed, quiet reaction shot." },
+      ]},
+    { name:"A STUDIO — Reel 3: Lesson 1 — roots & resilience", location:"Old tree on a mountain trail",
+      beat:"30% color — deep brown & tree green, earth and wood detail visible.",
+      nodes:[
+        { type:"script", title:"Reel 3 — Script", content:"Visual: 30% color, deep brown and tree green tones, earth/wood detail visible.\n\nScene: the old man rests his hand on the trunk of an old, tall tree. Camera pushes into a macro shot of thick roots woven deep into the soil." },
+        { type:"voiceover", title:"Reel 3 — VO + dialogue", content:"VO: \"هێز لەوەدا نییە چەند بە خێرایی بەرز دەبیتەوە، بەڵکو لەوەدایە چەند بە بەهێزی لەبەردەم سوتانی کاتدا دەمێنیتەوە... لە کاتێکدا شار فێرت دەکات بە دوای ڕووکەش و خێراییدا بڕویت، سروشت ڕاستییەکت پێ نیشان دەدات: بەهێزترین دروستکراوەکان، لە قوواڵییترین متمانە و بناغەوە سەرهەڵدەدەن.\"\n\nOld man: \"سەیری ئەم گەاڵیە بکە... بە فێنکە بایەکی بچووکیش هەڵدەوەری. بەاڵم سەیری ڕەگەکانی بکە... هەر شتێک بونیاد بنێیت، ئەگەر ڕەگی قووڵ بێت لە ڕاستگۆیی و ڕەسەنایەتی... هیچ زریانێک ناتوانێت بیڕوخێنێت.\"" },
+        { type:"videographer", title:"Reel 3 — Camera", content:"Hand on trunk → macro push into roots woven in soil. Ending transition: young man's eyes trace from roots up to trunk to the distant peak; shot moves from his eyes to the mountain, soft zoom out to close the reel." },
+      ]},
+    { name:"A STUDIO — Reel 4: Lesson 2 — the mountain, symbol of stability", location:"Mountain peak viewpoint",
+      beat:"60% color — sky blue, stone grey, mist showing clear depth.",
+      nodes:[
+        { type:"script", title:"Reel 4 — Script", content:"Visual: 60% color, sky blue and stone grey, mist drifting around the mountain shows clear depth.\n\nScene: camera holds on the peak of a massive mountain — mist drifts in and out, but the peak itself stands unmoved. The old man gestures toward the peak." },
+        { type:"voiceover", title:"Reel 4 — VO + dialogue", content:"VO: \"لەم شاخانەدا... ڕۆژگارە سەختەکان دەهاتن و دێهاتەکان بێدەنگ دەکران، خەڵک بەرەو باوەشی شاخەکان ڕایاندەکرد. شاخەکە هەمیشە بووە بە پەناگەیەک کە ژیانی تێدا دەپارێزرا... چونکە شاخ تەنها بەرد و خاک نییە؛ هێمای وەستانەوە و جێگیرییە.\"\n\nOld man: \"لەالی ئێمە، شاخ تەنیا بەرد نییە... شوێنی پشتبەستن و پاراستنە. لەبەردەم هەموو گۆڕانکاری و سەختیەکاندا، وەک خۆی سەربەرز و جێگیر دەمێنێتەوە.\"\n\nIndirect message: alignment with A STUDIO's identity — being an anchor and refuge for brands." },
+        { type:"videographer", title:"Reel 4 — Camera", content:"Hold on peak with drifting mist. Old man gestures to peak. Ending transition: camera slowly descends from the stern grey peak down to the base, where the sound of water and the reflection of a clear spring appear." },
+      ]},
+    { name:"A STUDIO — Reel 5: Lesson 3 — clear water & honesty", location:"Mountain spring at the base of the range",
+      beat:"85–100% color — crystal water reflections, vivid green surroundings.",
+      nodes:[
+        { type:"script", title:"Reel 5 — Script", content:"Visual: 85% to 100% color, reflections of clear crystal water with vivid green surroundings.\n\nScene: the young business owner puts his hands into a clear spring at the base of the mountain and washes his face. Hope and clarity replace the anxiety and clutter from the city." },
+        { type:"voiceover", title:"Reel 5 — VO + dialogue", content:"VO (Kurdish proverb): \"الی ئێمەی کورد وتەیەکی باو هەیە کە دەڵێت: 'ئاو ژیانە، لە کوێ ئاو هەبێت، ژیانیش لەوێ هەییە.' چۆن ئاو بنەمای ژیانە، ڕاستگۆیی و ڕوونی لە کاردا بنەمای مانەوەی بزنسەکەتە... پاکی و ڕاستگۆیی تاکە شتن متمانەی هەمیشەیی دروست دەکەن.\"\n\nOld man: \"کاتێک ڕاستگۆیی هەبێت، پێویست ناکات هیچ شتێک بشاریتەوە. کارێک کە دروست دەکرێت، دەبێت وەک ئەم ئاوە زواڵڵ و ڕوون بێت... خەڵک پێویستیان بە ئاوێنەیەکە کە ڕاستییەکانیان پێ بڵێت، نەک ڕووکەشێک کە وەهمیان بۆ بڕازێنێتەوە.\"\n\nYoung man: \"ئێستا بە تەواوی تێگەیشتم... دەبێت ببە شاخێک بۆ کارەکانی خەڵک — بەکۆڵەکەیەک کە هیچ سەختییەک نەیتوانێت بیڕوخێنێت. بە ڕەگێک هەمیشە لە گەشەدا بن، و بە ئاوێک ئەوەندە ڕوون بن تا متمانەی هەمیشەیی دروست بکەن.\"\n\nClosing: young man gathers his things, old man puts a hand on his shoulder: \"بوەستە، گرینگترین شتت بیر چوو.\"" },
+        { type:"videographer", title:"Reel 5 — Camera", content:"Hands in spring, washing face — reflections of clear water. Ending: zoom into old man's face as he stops the young man before he leaves." },
+      ]},
+    { name:"A STUDIO — Reel 6: Return with purpose", location:"Mountain peak / road, sunrise",
+      beat:"100% full cinematic color, bright warm light, high dynamic range. Logo + tagline reveal.",
+      nodes:[
+        { type:"script", title:"Reel 6 — Script", content:"Visual: 100% full cinematic color, bright and warm, high dynamic range.\n\nFour quick beats: 1) wind-swept mountain peak, 2) deep tree roots gripping soil, 3) clear water reflecting sky and the young man's face, 4) return to the old man's eyes as he lifts his hand from the young man's shoulder and gestures for him to go.\n\nClosing: young man drives off, glances back once via the mirror, smiles gratefully, continues down the road. Camera does NOT follow the car — it stays on the mountain road and slowly rises to reveal sunrise over the peak as the car drives away. Ends on logo card." },
+        { type:"voiceover", title:"Reel 6 — VO + dialogue", content:"Old man: \"گرنگترین شتت بیر چوو... شاخ، ڕەگ، و ئاو، دروشم نین تا تەنیا قسەیان لەسەر بکەیت... ئەوانتۆیت!\"\n\nVO beat 1 (mountain): \"تۆیت کە دەبێت ببیتە ئەو شاخەی لە بەرامبەر قورسترین زریانەکانی ژیاندا بمێنێتەوە و هیچ شتێک نەتوانێت بیڕوخێنێت.\"\nVO beat 2 (roots): \"تۆیت کە دەبێت ڕەگت ئەوەندە لە ڕاستگۆییدا قووڵ بێت تا هیچ گۆڕانکارییەک نەتوانێت لە شوێنی خۆت بت شکێنیتەوە.\"\nVO beat 3 (water): \"و تۆیت کە دەبێت وەک ئاوەکە ئەوەندە ڕوون ببێت تا متمانەی دروستکراوەکان بەدەست بهێنیت.\"\n\nOld man (final line): \"ئەگەر لە ناوەوە ئەم هێزانە نەبیت، یەکەم زریانی شار دەڕوخێنێت، دەبێت بەهێز بیت. بڕۆ... ببە بەو هێزەی کە باسی دەکەیت!\"\nYoung man (closing VO): \"ئەگەر بتەوێت براندێک بونیاد بنێیت کە بەرگە بگرێت و نەکەوێت... دەبێت یاساکانی سروشت بهێنیتە ناو کارەکەتەوە: هێزی شاخ، ڕەگی قووڵی ڕاستگۆی، و ڕونی ئاو.\"\n\nTitle card: A STUDIO — \"A mountain with you / RISE WITH US\"" },
+        { type:"videographer", title:"Reel 6 — Camera", content:"Fast cut to windswept peak on 'ئەوانتۆیت' line. Cut to roots macro. Cut to water reflection. Return to old man's eyes. Car drives away — camera holds on the road and rises to reveal sunrise, doesn't follow the car." },
+        { type:"graphic", title:"Reel 6 — Logo card", content:"Screen darkens slightly so text reads clearly. A STUDIO logo (mountain mark) animates in center. Tagline: 'A mountain with you' / 'RISE WITH US'." },
+      ]},
+  ];
+
+  async function loadAStudioExample(){
+    const existingNames = new Set(reels.map(r=>r.name));
+    const newReels = A_STUDIO_REELS.filter(spec => !existingNames.has(spec.name)).map(buildReelFromSpec);
+    if (newReels.length === 0){
+      await showAlert('Already on your board', 'The A STUDIO reels are already on your board.');
+      return;
+    }
+    reels = reels.concat(newReels);
+    activeId = newReels[0].id;
+    for (const r of newReels){ await persistReel(r); }
+    await persistIndex();
+    buildReelSelect();
+    renderCanvas();
+  }
+
+  // ---------- reel controls ----------
+  els.reelSelect.addEventListener('change', ()=>{
+    activeId = els.reelSelect.value;
+    renderCanvas();
+  });
+
+  document.getElementById('newReelBtn').addEventListener('click', async ()=>{
+    const entered = await showPrompt('Name this project', 'New project');
+    if (entered === null) return;
+    const name = entered.trim() || 'New project';
+    const r = defaultReel(name);
+    reels.push(r);
+    activeId = r.id;
+    await persistReel(r);
+    await persistIndex();
+    buildReelSelect();
+    renderCanvas();
+  });
+
+  document.getElementById('loadExampleBtn').addEventListener('click', loadAStudioExample);
+
+  // ---------- PDF / doc import ----------
+  if (window.pdfjsLib){
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  }
+
+  async function extractPdfText(file){
+    const buf = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+    let full = '';
+    for (let i = 1; i <= pdf.numPages; i++){
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      full += content.items.map(it => it.str).join(' ') + '\n\n';
+    }
+    return full.trim();
+  }
+
+  async function extractDocxText(file){
+    const buf = await file.arrayBuffer();
+    const result = await mammoth.extractRawText({ arrayBuffer: buf });
+    return result.value.trim();
+  }
+
+  document.getElementById('importBtn').addEventListener('click', ()=>{
+    document.getElementById('importFile').click();
+  });
+
+  document.getElementById('importFile').addEventListener('change', async (e)=>{
+    const file = e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    const reel = activeReel();
+    if (!reel){ await showAlert('No project selected', 'Pick or create a project first.'); return; }
+
+    let text = '';
+    let warn = '';
+    try{
+      const lower = file.name.toLowerCase();
+      if (lower.endsWith('.pdf')){
+        if (!window.pdfjsLib) throw new Error("PDF import needs an internet connection the first time (it loads a reader library). Try again once you're online, or use a .docx or .txt file instead.");
+        text = await extractPdfText(file);
+        warn = ' PDF text can come out with word order scrambled for Kurdish/Arabic script — check it and fix if needed.';
+      } else if (lower.endsWith('.docx')){
+        if (!window.mammoth) throw new Error("Word import needs an internet connection the first time (it loads a reader library). Try again once you're online, or use a .txt file instead.");
+        text = await extractDocxText(file);
+      } else {
+        text = await file.text();
+      }
+    }catch(err){
+      await showAlert("Couldn't read that file", err.message || '');
+      return;
+    }
+
+    if (!text){ await showAlert('Nothing to import', 'No readable text found in that file.'); return; }
+
+    const count = reel.nodes.length;
+    const node = makeNode('custom', 'Imported: ' + file.name, text);
+    node.x = 60 + (count % 5) * 260;
+    node.y = 40 + Math.floor(count / 5) * 210;
+    reel.nodes.push(node);
+    scheduleSave();
+    renderCanvas();
+    if (warn) await showAlert('Imported', warn);
+  });
+
+  // ---------- export as ordered, printable steps ----------
+  function topoOrder(reel){
+    const nodes = reel.nodes;
+    const nodeById = {}; nodes.forEach(n => nodeById[n.id] = n);
+    const indeg = {}; nodes.forEach(n => indeg[n.id] = 0);
+    reel.edges.forEach(e => { if (indeg[e.to] !== undefined) indeg[e.to]++; });
+    const adj = {}; nodes.forEach(n => adj[n.id] = []);
+    reel.edges.forEach(e => { if (adj[e.from]) adj[e.from].push(e.to); });
+
+    const queue = nodes.filter(n => indeg[n.id] === 0).map(n => n.id);
+    const order = [];
+    const seen = new Set();
+    while (queue.length){
+      const id = queue.shift();
+      if (seen.has(id)) continue;
+      seen.add(id);
+      order.push(nodeById[id]);
+      (adj[id] || []).forEach(nxt => {
+        indeg[nxt]--;
+        if (indeg[nxt] <= 0 && !seen.has(nxt)) queue.push(nxt);
+      });
+    }
+    nodes.forEach(n => { if (!seen.has(n.id)){ order.push(n); seen.add(n.id); } });
+    return order;
+  }
+
+  function escapePrint(s){ return (s || '').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+  function buildPrintHtml(reel){
+    const order = topoOrder(reel);
+    let html = `<h1>${escapePrint(reel.name)}</h1>`;
+    if (currentSettings.name){
+      html += `<div class="pv-meta" style="margin-bottom:4px;">Prepared by ${escapePrint(currentSettings.name)}</div>`;
+    }
+    if (reel.location || reel.date || reel.beat || reel.targetRuntime){
+      html += `<div class="pv-meta">`;
+      if (reel.location) html += `<div><strong>Location:</strong> <a href="${buildGoogleMapsUrl(reel.location)}" target="_blank" rel="noopener">${escapePrint(reel.location)}</a></div>`;
+      if (reel.date) html += `<div><strong>Date:</strong> ${escapePrint(reel.date)}</div>`;
+      if (reel.beat) html += `<div><strong>Scene:</strong> ${escapePrint(reel.beat)}</div>`;
+      if (reel.targetRuntime){
+        const totalSeconds = reel.nodes.reduce((sum, n)=>{
+          const s = parseDurationToSeconds(n.duration);
+          return sum + (s || 0);
+        }, 0);
+        const anyDurations = reel.nodes.some(n => parseDurationToSeconds(n.duration) !== null);
+        html += `<div><strong>Target runtime:</strong> ${escapePrint(reel.targetRuntime)}${anyDurations ? ` (planned total: ${formatSecondsToClock(totalSeconds)})` : ''}</div>`;
+      }
+      html += `</div>`;
+    }
+    if ((reel.equipment && reel.equipment.length) || reel.budgetTotal || reel.budgetNotes){
+      html += `<div class="pv-step">`;
+      html += `<h2>Equipment & Budget</h2>`;
+      if (reel.equipment && reel.equipment.length){
+        html += `<div class="pv-phase">Gear needed</div>`;
+        reel.equipment.forEach(item=>{
+          html += `<div class="pv-task">• ${escapePrint(item.name)}${item.cost ? ' — ' + escapePrint(item.cost) : ''}</div>`;
+        });
+      }
+      if (reel.budgetTotal){
+        html += `<div class="pv-row" style="margin-top:8px;"><strong>Total budget:</strong> ${escapePrint(reel.budgetTotal)}</div>`;
+      }
+      if (reel.budgetNotes){
+        html += `<div class="pv-content">${escapePrint(reel.budgetNotes)}</div>`;
+      }
+      html += `</div>`;
+    }
+    order.forEach((node, i) => {
+      const stageDef = STAGES[node.type] || { label: node.type };
+      html += `<div class="pv-step">`;
+      html += `<div class="pv-step-num">Step ${i + 1} of ${order.length}</div>`;
+      html += `<h2>${escapePrint(node.title)} <span class="pv-stage">(${escapePrint(stageDef.label)})</span></h2>`;
+      if (node.type === 'social' && (node.platform || node.postType)){
+        html += `<div class="pv-row"><strong>Platform:</strong> ${escapePrint(node.platform) || '—'} &nbsp;&nbsp; <strong>Post type:</strong> ${escapePrint(node.postType) || '—'}</div>`;
+      }
+      html += `<div class="pv-row"><strong>Assigned to:</strong> ${escapePrint(node.assignee) || '—'} &nbsp;&nbsp; <strong>Type:</strong> ${escapePrint(node.role)} &nbsp;&nbsp; <strong>Status:</strong> ${escapePrint(node.status)}${node.duration ? ' &nbsp;&nbsp; <strong>Duration:</strong> ' + escapePrint(node.duration) : ''}${node.deadline ? ' &nbsp;&nbsp; <strong>' + (node.type === 'social' ? 'Post date & time' : 'Deadline') + ':</strong> ' + escapePrint(node.deadline) : ''}</div>`;
+      if (node.content){
+        html += `<div class="pv-content">${escapePrint(node.content)}</div>`;
+      }
+      if (node.tasks && node.tasks.length){
+        let lastPhase = null;
+        node.tasks.forEach(t => {
+          if (t.phase !== lastPhase){ html += `<div class="pv-phase">${escapePrint(t.phase)}</div>`; lastPhase = t.phase; }
+          html += `<div class="pv-task">${t.done ? '☑' : '☐'} ${escapePrint(t.text)}</div>`;
+        });
+      }
+      html += `</div>`;
+    });
+    return html;
+  }
+
+  document.getElementById('exportBtn').addEventListener('click', async ()=>{
+    const reel = activeReel();
+    if (!reel){ await showAlert('No project selected', 'Pick a project first.'); return; }
+    if (reel.nodes.length === 0){ await showAlert('Nothing to export', 'This reel has no stages yet.'); return; }
+    document.getElementById('previewContent').innerHTML = buildPrintHtml(reel);
+    document.getElementById('previewOverlay').classList.add('open');
+  });
+
+  document.getElementById('previewCloseBtn').addEventListener('click', ()=>{
+    document.getElementById('previewOverlay').classList.remove('open');
+  });
+
+  document.getElementById('previewDarkBtn').addEventListener('click', ()=>{
+    const overlay = document.getElementById('previewOverlay');
+    const btn = document.getElementById('previewDarkBtn');
+    const isDark = overlay.classList.toggle('dark');
+    btn.textContent = isDark ? '☀️ Light mode' : '🌙 Dark mode';
+    btn.classList.toggle('on', isDark);
+  });
+
+  document.getElementById('previewPrintBtn').addEventListener('click', ()=>{
+    document.getElementById('printView').innerHTML = document.getElementById('previewContent').innerHTML;
+    document.getElementById('previewOverlay').classList.remove('open');
+    // The browser's "Save as PDF" dialog suggests document.title as the
+    // filename — set it to the actual project name so what gets saved isn't
+    // just called "Reel Board.pdf" for every project.
+    const reel = activeReel();
+    const originalTitle = document.title;
+    if (reel) document.title = `${reel.name} — steps`;
+    setTimeout(()=>{
+      window.print();
+      setTimeout(()=>{ document.title = originalTitle; }, 500);
+    }, 60);
+  });
+
+  // ---------- calendar export (Google Calendar link + universal .ics file) ----------
+  function parseDateLoose(str){
+    if (!str) return null;
+    // <input type="date"> gives plain YYYY-MM-DD, which `new Date()` treats as
+    // UTC midnight — that can shift a day in negative-UTC timezones. Build it
+    // from local date parts instead so "the 20th" always means the 20th.
+    const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/.exec(str);
+    if (dateOnly){
+      const d = new Date(Number(dateOnly[1]), Number(dateOnly[2]) - 1, Number(dateOnly[3]));
+      return isNaN(d.getTime()) ? null : d;
+    }
+    const d = new Date(str);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  // Converts whatever's stored (old free-typed text, or a fresh ISO value
+  // straight from a date/datetime-local picker) into the exact format those
+  // native inputs require, so old data still shows up correctly in the new
+  // pickers instead of appearing blank.
+  function toDateInputValue(str){
+    if (!str) return '';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+    const d = parseDateLoose(str);
+    if (!d) return '';
+    const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${day}`;
+  }
+  function toDateTimeInputValue(str){
+    if (!str) return '';
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(str)) return str.slice(0, 16);
+    const d = parseDateLoose(str);
+    if (!d) return '';
+    const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+    const hh = String(d.getHours()).padStart(2,'0'), mi = String(d.getMinutes()).padStart(2,'0');
+    return `${y}-${m}-${day}T${hh}:${mi}`;
+  }
+
+  function toICSDate(d){
+    const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+    return `${y}${m}${day}`;
+  }
+  function addDays(d, n){ const r = new Date(d); r.setDate(r.getDate()+n); return r; }
+  function icsEscape(s){ return (s||'').replace(/\\/g,'\\\\').replace(/\n/g,'\\n').replace(/,/g,'\\,').replace(/;/g,'\\;'); }
+
+  function buildGoogleMapsUrl(location){
+    const trimmed = (location || '').trim();
+    // If it's already a Maps link (e.g. a share link like maps.app.goo.gl/...,
+    // or any google.com/maps / goo.gl/maps URL), use it exactly as pasted —
+    // that's a precise pin, far more accurate than re-searching by name.
+    const isMapsLink = /^https?:\/\/(www\.)?(maps\.app\.goo\.gl|goo\.gl\/maps|(maps\.)?google\.[a-z.]+\/maps)/i.test(trimmed);
+    if (isMapsLink) return trimmed;
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(trimmed)}`;
+  }
+
+  function buildGoogleCalUrl(title, date, details, location){
+    const start = toICSDate(date), end = toICSDate(addDays(date, 1));
+    const params = new URLSearchParams({
+      action: 'TEMPLATE', text: title, dates: `${start}/${end}`,
+      details: details || '', location: location || ''
+    });
+    return `https://calendar.google.com/calendar/render?${params.toString()}`;
+  }
+
+  function buildICS(title, date, details, location){
+    const start = toICSDate(date), end = toICSDate(addDays(date, 1));
+    const stamp = toICSDate(new Date()) + 'T000000Z';
+    return [
+      'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Reel Board//EN','BEGIN:VEVENT',
+      `UID:${uid('evt')}@reelboard`,
+      `DTSTAMP:${stamp}`,
+      `DTSTART;VALUE=DATE:${start}`,
+      `DTEND;VALUE=DATE:${end}`,
+      `SUMMARY:${icsEscape(title)}`,
+      `DESCRIPTION:${icsEscape(details)}`,
+      `LOCATION:${icsEscape(location)}`,
+      'END:VEVENT','END:VCALENDAR'
+    ].join('\r\n');
+  }
+
+  // Saves a file to disk. Where the browser supports it (Chrome/Edge on
+  // desktop), this opens the real OS "Save As" dialog so the person picks
+  // the folder themselves. Everywhere else (Safari, Firefox, any mobile
+  // browser) there's no such API yet, so it falls back to a normal download
+  // with the right filename already filled in — the browser/OS decides the
+  // folder per whatever the person already has it set to do.
+  async function saveFile(filename, content, mimeType, pickerTypes){
+    if (window.showSaveFilePicker){
+      try{
+        const handle = await window.showSaveFilePicker({
+          suggestedName: filename,
+          types: pickerTypes ? [{ description: mimeType, accept: pickerTypes }] : undefined,
+        });
+        const writable = await handle.createWritable();
+        await writable.write(content);
+        await writable.close();
+        return true;
+      }catch(err){
+        if (err && err.name === 'AbortError') return false; // person cancelled the dialog
+        // fall through to the plain-download fallback below
+      }
+    }
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=> URL.revokeObjectURL(url), 2000);
+    return true;
+  }
+
+  function downloadICS(filename, content){
+    saveFile(filename, content, 'text/calendar', { 'text/calendar': ['.ics'] });
+  }
+
+  async function addToGoogleCalendar(title, dateStr, details, location){
+    const d = parseDateLoose(dateStr);
+    if (!d){ await showAlert('Needs a valid date', "Use a format like 2026-08-20 so a calendar app can read it."); return; }
+    window.open(buildGoogleCalUrl(title, d, details, location), '_blank');
+  }
+  async function addToICS(title, dateStr, details, location){
+    const d = parseDateLoose(dateStr);
+    if (!d){ await showAlert('Needs a valid date', "Use a format like 2026-08-20 so a calendar app can read it."); return; }
+    downloadICS(title.replace(/[^\w\- ]+/g,'').slice(0,60) + '.ics', buildICS(title, d, details, location));
+  }
+
+  // ---------- deadline reminders ----------
+  let remindersOn = false;
+  let reminderTimer = null;
+
+  function checkDeadlines(){
+    const today = new Date(); today.setHours(0,0,0,0);
+    let changed = false;
+    reels.forEach(reel=>{
+      reel.nodes.forEach(node=>{
+        if (!node.deadline || node.reminded || node.status === 'Done') return;
+        const d = new Date(node.deadline);
+        if (isNaN(d.getTime())) return;
+        d.setHours(0,0,0,0);
+        if (d <= today){
+          try{
+            new Notification('Deadline: ' + node.title, {
+              body: `${reel.name} — due ${node.deadline}${node.assignee ? ' · ' + node.assignee : ''}`
+            });
+          }catch(e){ /* ignore */ }
+          node.reminded = true;
+          persistReel(reel);
+          changed = true;
+        }
+      });
+    });
+    if (changed) drawWires(); // no-op safe refresh point
+  }
+
+  document.getElementById('remindersBtn').addEventListener('click', async ()=>{
+    const btn = document.getElementById('remindersBtn');
+    if (remindersOn){
+      remindersOn = false;
+      clearInterval(reminderTimer);
+      btn.textContent = '🔔 Reminders: Off';
+      btn.classList.remove('on');
+      return;
+    }
+    if (!('Notification' in window)){
+      await showAlert("Not supported", "This browser doesn't support notifications.");
+      return;
+    }
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted'){
+      await showAlert("Notifications blocked", "Notifications weren't allowed, so reminders can't fire. You can turn them on for this site in your browser settings and try again.");
+      return;
+    }
+    remindersOn = true;
+    btn.textContent = '🔔 Reminders: On';
+    btn.classList.add('on');
+    checkDeadlines();
+    reminderTimer = setInterval(checkDeadlines, 60000);
+    await showAlert("Reminders on", "Set a Deadline on any card and you'll get a notification when it's due — but only while this tab stays open in your browser. Closing the tab or the app pauses them; reopening and turning reminders back on catches up on anything overdue.");
+  });
+
+  document.getElementById('renameBtn').addEventListener('click', async ()=>{
+    const reel = activeReel();
+    if (!reel) return;
+    const name = await showPrompt('Rename project', reel.name);
+    if (name && name.trim()){
+      reel.name = name.trim();
+      await persistReel(reel);
+      buildReelSelect();
+      renderCanvas();
+    }
+  });
+
+  document.getElementById('deleteReelBtn').addEventListener('click', async ()=>{
+    if (reels.length <= 1){ await showAlert("Can't delete", "You need at least one project."); return; }
+    const reel = activeReel();
+    const ok = await showConfirm('Delete this project?', `Delete "${reel.name}"? This can't be undone.`);
+    if (!ok) return;
+    try{ await store.delete('reel:' + reel.id); }catch(e){}
+    reels = reels.filter(r => r.id !== reel.id);
+    activeId = reels[0].id;
+    await persistIndex();
+    buildReelSelect();
+    renderCanvas();
+  });
+
+  // ---------- backup / restore (a real safety net — everything on this
+  // device, in one file you keep yourself, separate from the PDF export) ----------
+  document.getElementById('backupBtn').addEventListener('click', ()=>{
+    if (reels.length === 0){ showAlert('Nothing to back up', 'Add a project first.'); return; }
+    const list = document.getElementById('backupPickerList');
+    list.innerHTML = '';
+    reels.forEach(r=>{
+      const row = document.createElement('label');
+      row.className = 'backup-picker-row';
+      row.innerHTML = `<input type="checkbox" value="${r.id}" ${r.id === activeId ? 'checked' : ''}/><span></span>`;
+      row.querySelector('span').textContent = r.name;
+      list.appendChild(row);
+    });
+    document.getElementById('backupPickerOverlay').classList.add('open');
+  });
+
+  document.getElementById('backupSelectAllBtn').addEventListener('click', ()=>{
+    document.querySelectorAll('#backupPickerList input[type=checkbox]').forEach(cb => cb.checked = true);
+  });
+  document.getElementById('backupSelectNoneBtn').addEventListener('click', ()=>{
+    document.querySelectorAll('#backupPickerList input[type=checkbox]').forEach(cb => cb.checked = false);
+  });
+  document.getElementById('backupPickerCancelBtn').addEventListener('click', ()=>{
+    document.getElementById('backupPickerOverlay').classList.remove('open');
+  });
+
+  document.getElementById('backupPickerSaveBtn').addEventListener('click', async ()=>{
+    const checked = Array.from(document.querySelectorAll('#backupPickerList input[type=checkbox]:checked'));
+    if (checked.length === 0){ await showAlert('Nothing selected', 'Pick at least one project to back up.'); return; }
+    const selectedIds = new Set(checked.map(cb => cb.value));
+    const selectedReels = reels.filter(r => selectedIds.has(r.id));
+
+    const payload = {
+      app: 'reel-board', version: 1,
+      exportedAt: new Date().toISOString(),
+      reels: selectedReels,
+    };
+    const stamp = new Date().toISOString().slice(0, 10);
+    let namePart;
+    if (selectedReels.length === reels.length && reels.length > 1){
+      namePart = `ALL-${reels.length}-projects`;
+    } else if (selectedReels.length === 1){
+      namePart = selectedReels[0].name.replace(/[^\w\- ]+/g, '').trim().slice(0, 60) || 'project';
+    } else {
+      namePart = `${selectedReels.length}-projects`;
+    }
+    const filename = `reel-board-backup-${namePart}-${stamp}.json`;
+
+    document.getElementById('backupPickerOverlay').classList.remove('open');
+    await saveFile(filename, JSON.stringify(payload, null, 2), 'application/json', { 'application/json': ['.json'] });
+  });
+
+  document.getElementById('restoreBtn').addEventListener('click', ()=>{
+    document.getElementById('restoreFile').click();
+  });
+
+  document.getElementById('restoreFile').addEventListener('change', async (e)=>{
+    const file = e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+
+    let payload;
+    try{
+      const text = await file.text();
+      payload = JSON.parse(text);
+    }catch(err){
+      await showAlert("Couldn't read that backup", "That file doesn't look like a valid Reel Board backup.");
+      return;
+    }
+
+    const incoming = Array.isArray(payload) ? payload : payload.reels;
+    if (!Array.isArray(incoming) || incoming.length === 0){
+      await showAlert("Nothing to restore", "That backup file doesn't contain any projects.");
+      return;
+    }
+
+    // Never silently overwrite what's already here — restore always adds
+    // projects alongside your current ones. If a project with the same id
+    // already exists (restoring the same backup twice), it's added as a
+    // fresh copy with a new id rather than skipped or overwritten.
+    const existingIds = new Set(reels.map(r => r.id));
+    const restored = incoming.map(r => {
+      const copy = JSON.parse(JSON.stringify(r));
+      if (existingIds.has(copy.id)) copy.id = uid('reel');
+      existingIds.add(copy.id);
+      return copy;
+    });
+
+    reels = reels.concat(restored);
+    activeId = restored[0].id;
+    for (const r of restored){ await persistReel(r); }
+    await persistIndex();
+    buildReelSelect();
+    renderCanvas();
+    await showAlert('Restored', `Added ${restored.length} project${restored.length === 1 ? '' : 's'} from the backup.`);
+  });
+
+  window.addEventListener('resize', drawWires);
+
+  // ---------- mobile: collapsible "More" actions + shoot info bar ----------
+  document.getElementById('moreToggleBtn').addEventListener('click', ()=>{
+    const panel = document.getElementById('topbarMore');
+    const btn = document.getElementById('moreToggleBtn');
+    const isOpen = panel.classList.toggle('open');
+    btn.textContent = isOpen ? '▲ Less' : '⋯ More';
+  });
+  document.getElementById('shootbarToggle').addEventListener('click', ()=>{
+    const bar = document.getElementById('shootbar');
+    const toggle = document.getElementById('shootbarToggle');
+    const isOpen = bar.classList.toggle('open');
+    toggle.classList.toggle('open', isOpen);
+    const hint = document.getElementById('shootbarToggleHint');
+    if (hint) hint.textContent = isOpen ? 'tap to minimize' : 'tap to expand';
+  });
+
+  // ---------- init ----------
+  document.getElementById('welcomeOkBtn').addEventListener('click', ()=>{
+    document.getElementById('welcomeOverlay').classList.remove('open');
+  });
+
+  // ---------- settings panel ----------
+  document.getElementById('settingsBtn').addEventListener('click', ()=>{
+    populateSettingsUI();
+    document.getElementById('settingsOverlay').classList.add('open');
+  });
+  document.getElementById('settingsCloseBtn').addEventListener('click', ()=>{
+    document.getElementById('settingsOverlay').classList.remove('open');
+  });
+  document.getElementById('settingsName').addEventListener('input', e=>{
+    currentSettings.name = e.target.value;
+    saveSettings();
+  });
+  document.getElementById('themeDarkBtn').addEventListener('click', ()=>{
+    currentSettings.theme = 'dark';
+    saveSettings();
+    populateSettingsUI();
+  });
+  document.getElementById('themeLightBtn').addEventListener('click', ()=>{
+    currentSettings.theme = 'light';
+    saveSettings();
+    populateSettingsUI();
+  });
+  document.getElementById('colorAccent').addEventListener('input', e=>{
+    currentSettings.colors.gold = e.target.value;
+    saveSettings();
+  });
+  document.querySelectorAll('.settings-color-input[data-stage]').forEach(input=>{
+    const stage = input.dataset.stage;
+    const colorKey = { voiceover:'red', videographer:'blue', photographer:'violet', graphic:'green', motion:'orange', social:'pink' }[stage];
+    input.addEventListener('input', e=>{
+      currentSettings.colors[colorKey] = e.target.value;
+      saveSettings();
+    });
+  });
+  document.querySelectorAll('.settings-color-input[data-status]').forEach(input=>{
+    const colorKey = 'status-' + input.dataset.status;
+    input.addEventListener('input', e=>{
+      currentSettings.colors[colorKey] = e.target.value;
+      saveSettings();
+    });
+  });
+  document.getElementById('stageColorsToggle').addEventListener('click', e=>{
+    const isOpen = document.getElementById('stageColorsGroup').classList.toggle('open');
+    e.target.textContent = isOpen ? '▴ Stage colors (6)' : '▾ Stage colors (6)';
+  });
+  document.getElementById('statusColorsToggle').addEventListener('click', e=>{
+    const isOpen = document.getElementById('statusColorsGroup').classList.toggle('open');
+    e.target.textContent = isOpen ? '▴ Status border colors (5)' : '▾ Status border colors (5)';
+  });
+  document.getElementById('settingsResetBtn').addEventListener('click', async ()=>{
+    const ok = await showConfirm('Reset appearance?', 'This resets your name, theme, and all colors back to defaults.');
+    if (!ok) return;
+    currentSettings = { name:'', theme:'dark', colors: Object.assign({}, DEFAULT_COLORS) };
+    await saveSettings();
+    populateSettingsUI();
+  });
+
+  (async function init(){
+    buildRail();
+    await loadSettings();
+    await loadAll();
+    buildReelSelect();
+    renderCanvas();
+
+    // Show a one-time welcome the very first time, so someone new isn't
+    // dropped straight into a wall of buttons. Uses the same store as
+    // everything else, so it stays "seen" across devices where storage syncs.
+    try{
+      const seen = await store.get('welcome-seen');
+      if (!seen){
+        document.getElementById('welcomeOverlay').classList.add('open');
+        await store.set('welcome-seen', 'true');
+      }
+    }catch(e){ /* not critical if this fails */ }
+  })();
+})();
+
+// ---------- Install App button ----------
+(function(){
+  const installBtn = document.getElementById('installBtn');
+  const installOverlay = document.getElementById('installOverlay');
+  const installMsg = document.getElementById('installMsg');
+  const installOkBtn = document.getElementById('installOkBtn');
+  let deferredPrompt = null;
+
+  function isStandalone(){
+    return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  }
+  function isIOS(){
+    return /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+  }
+
+  if (isStandalone()){
+    // already installed / running as an app — nothing to do
+  } else if (isIOS()){
+    installBtn.style.display = '';
+    installBtn.addEventListener('click', ()=>{
+      installMsg.textContent = 'Tap the Share icon at the bottom of Safari, then choose "Add to Home Screen".';
+      installOverlay.classList.add('open');
+    });
+  } else {
+    window.addEventListener('beforeinstallprompt', (e)=>{
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.style.display = '';
+    });
+    installBtn.addEventListener('click', async ()=>{
+      if (deferredPrompt){
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+        deferredPrompt = null;
+        installBtn.style.display = 'none';
+      } else {
+        installMsg.textContent = 'Open the ⋮ menu in your browser and choose "Install app" or "Add to Home screen".';
+        installOverlay.classList.add('open');
+      }
+    });
+  }
+
+  installOkBtn.addEventListener('click', ()=> installOverlay.classList.remove('open'));
+  window.addEventListener('appinstalled', ()=>{ installBtn.style.display = 'none'; });
+})();
+
+// Register the service worker so the app shell loads instantly and works
+// fully offline after the first visit. Only runs when served over http(s)
+// (e.g. GitHub Pages) — silently does nothing inside sandboxed previews.
+if ('serviceWorker' in navigator && (location.protocol === 'http:' || location.protocol === 'https:')){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+</script>
