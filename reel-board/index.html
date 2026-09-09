@@ -32,6 +32,22 @@
     --green:#4ade80;
     --orange:#ff9466;
     --pink:#f26fa8;
+    --status-progress:#f2b441;
+    --status-review:#b18cff;
+    --status-approved:#5ec8f2;
+    --status-done:#4ade80;
+    --status-blocked:#e5595d;
+  }
+  html.theme-light{
+    --bg-canvas:#f4f3f0;
+    --bg-panel:#ffffff;
+    --bg-node:#eeece7;
+    --bg-node-hover:#e4e1da;
+    --border:#d5d1c8;
+    --border-soft:#e3dfd6;
+    --text-primary:#1c1c22;
+    --text-secondary:#5c5f6b;
+    --text-dim:#8a8d97;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;height:100%;background:var(--bg-canvas);color:var(--text-primary);font-family:'Inter',sans-serif;overflow:hidden;}
@@ -57,12 +73,14 @@
   .topbar-more.open{display:flex;}
 
   .shootbar-toggle{
-    display:flex;width:100%;align-items:center;justify-content:space-between;
+    display:flex;width:100%;align-items:center;justify-content:space-between;gap:10px;
     background:#17191f;border:none;border-bottom:1px solid var(--border-soft);
     color:var(--text-secondary);font-family:'JetBrains Mono',monospace;font-size:12px;
     padding:10px 18px;cursor:pointer;
   }
-  .shootbar-toggle .chevron{transition:transform .2s;color:var(--text-dim);}
+  .shootbar-toggle #shootbarToggleLabel{flex:1;min-width:0;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .shootbar-toggle-hint{color:var(--text-dim);font-size:10.5px;flex-shrink:0;}
+  .shootbar-toggle .chevron{transition:transform .2s;color:var(--text-dim);flex-shrink:0;}
   .shootbar-toggle.open .chevron{transform:rotate(180deg);}
 
   .shootbar{
@@ -116,11 +134,11 @@
   .swatch{width:9px;height:9px;border-radius:2px;flex-shrink:0;background:var(--stage-color);}
 
   .canvas-wrap{flex:1;position:relative;overflow:auto;background:
-    radial-gradient(circle, #23262e 1px, transparent 1px) 0 0/22px 22px, var(--bg-canvas);
+    radial-gradient(circle, var(--border-soft) 1px, transparent 1px) 0 0/22px 22px, var(--bg-canvas);
   }
   .sprockets{
     position:sticky;left:0;height:14px;width:100%;
-    background-image: repeating-linear-gradient(90deg, #2b2e37 0 8px, transparent 8px 20px);
+    background-image: repeating-linear-gradient(90deg, var(--border) 0 8px, transparent 8px 20px);
     background-position:6px 6px;background-size:20px 2px;background-repeat:repeat-x;
     opacity:.5;pointer-events:none;
   }
@@ -134,9 +152,9 @@
   /* Node card */
   .node{
     position:absolute;width:290px;background:var(--bg-node);
-    border:1px solid var(--border);border-radius:10px;
+    border:1.5px solid var(--status-color, var(--border));border-radius:10px;
     box-shadow:0 6px 18px rgba(0,0,0,.35);
-    font-size:15px;user-select:none;
+    font-size:15px;user-select:none;transition:border-color .2s;
   }
   .node.dragging{box-shadow:0 12px 30px rgba(0,0,0,.5);border-color:var(--gold);z-index:50;}
   .node-head{
@@ -385,6 +403,48 @@
   .mini-title{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15px;color:var(--text-primary);margin-bottom:8px;}
   .mini-msg{font-size:13px;color:var(--text-secondary);line-height:1.5;margin-bottom:10px;display:none;}
   .mini-overlay.show-msg .mini-msg{display:block;}
+  .welcome-modal{max-width:420px;}
+  .welcome-steps{display:block !important;}
+  .welcome-step{margin-bottom:10px;}
+  .welcome-step b{color:var(--gold);}
+
+  .settings-modal{max-width:400px;max-height:85vh;overflow-y:auto;}
+  .settings-section{margin-bottom:16px;}
+  .settings-section input[type=text]{
+    width:100%;background:var(--bg-canvas);border:1px solid var(--border-soft);color:var(--text-primary);
+    border-radius:6px;padding:8px 10px;font-family:'Inter',sans-serif;font-size:13.5px;outline:none;
+  }
+  .settings-section input[type=text]:focus{border-color:var(--gold);}
+  .settings-theme-row{display:flex;gap:8px;}
+  .settings-theme-btn{
+    flex:1;background:var(--bg-canvas);border:1px solid var(--border-soft);color:var(--text-secondary);
+    border-radius:6px;padding:8px 10px;font-family:'Inter',sans-serif;font-size:13px;cursor:pointer;
+  }
+  .settings-theme-btn.active{border-color:var(--gold);color:var(--gold);background:rgba(242,180,65,0.08);}
+  .settings-color-row{display:flex;align-items:center;gap:10px;margin-top:8px;}
+  .settings-color-row:first-of-type{margin-top:6px;}
+  .settings-color-input{
+    width:36px;height:36px;padding:0;border:1px solid var(--border-soft);border-radius:8px;
+    background:none;cursor:pointer;flex-shrink:0;
+  }
+  .settings-color-label{font-size:12.5px;color:var(--text-secondary);}
+
+  .backup-picker-modal{max-width:400px;}
+  .backup-picker-actions-row{display:flex;gap:14px;margin-bottom:8px;}
+  .backup-picker-link{
+    background:none;border:none;color:var(--gold);font-size:12px;font-family:'Inter',sans-serif;
+    cursor:pointer;padding:0;text-decoration:underline;
+  }
+  .backup-picker-list{
+    max-height:280px;overflow-y:auto;border:1px solid var(--border-soft);border-radius:8px;
+    padding:4px;margin-bottom:14px;
+  }
+  .backup-picker-row{
+    display:flex;align-items:center;gap:10px;padding:9px 8px;border-radius:6px;cursor:pointer;
+  }
+  .backup-picker-row:hover{background:var(--bg-canvas);}
+  .backup-picker-row input[type=checkbox]{width:17px;height:17px;accent-color:var(--gold);flex-shrink:0;cursor:pointer;}
+  .backup-picker-row span{font-size:13.5px;color:var(--text-primary);unicode-bidi:plain-text;}
   #miniInput{
     display:none;width:100%;background:var(--bg-canvas);border:1px solid var(--border-soft);
     color:var(--text-primary);border-radius:6px;padding:9px 10px;font-size:14px;outline:none;
@@ -404,6 +464,15 @@
     cursor:pointer;flex-shrink:0;
   }
   .expand-btn:hover{border-color:var(--gold);color:var(--gold);}
+
+  .details-toggle{
+    width:100%;text-align:left;background:none;border:1px dashed var(--border-soft);
+    color:var(--text-dim);border-radius:6px;padding:6px 9px;font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;cursor:pointer;
+  }
+  .details-toggle:hover{border-color:var(--gold);color:var(--gold);}
+  .node-details{display:none;flex-direction:column;gap:9px;margin-top:2px;}
+  .node-details.open{display:flex;}
 
   .expand-overlay{
     position:fixed;inset:0;background:var(--bg-canvas);z-index:250;
@@ -454,6 +523,7 @@
     <select id="reelSelect"></select>
     <button class="btn primary" id="newReelBtn">+ New Project</button>
     <button class="btn" id="moreToggleBtn">⋯ More</button>
+    <button class="btn" id="settingsBtn" title="Settings">⚙️</button>
     <div class="spacer"></div>
     <span class="hint">drag from a dot to connect · click a cable to cut it</span>
   </div>
@@ -465,13 +535,14 @@
     <button class="btn" id="remindersBtn">🔔 Reminders: Off</button>
     <button class="btn" id="equipBtn">🎒 Equipment & Budget</button>
     <button class="btn primary" id="exportBtn">Export steps (PDF)</button>
-    <button class="btn" id="backupBtn">💾 Backup project</button>
+    <button class="btn" id="backupBtn">💾 Backup projects…</button>
     <button class="btn" id="restoreBtn">📂 Restore backup</button>
     <input type="file" id="restoreFile" accept=".json" style="display:none" />
     <button class="btn danger" id="deleteReelBtn">Delete Project</button>
   </div>
   <button class="shootbar-toggle" id="shootbarToggle">
     <span id="shootbarToggleLabel">📍 Shoot info</span>
+    <span class="shootbar-toggle-hint" id="shootbarToggleHint">tap to expand</span>
     <span class="chevron">▾</span>
   </button>
   <div class="shootbar" id="shootbar">
@@ -588,6 +659,88 @@
   </div>
 </div>
 
+<div class="mini-overlay" id="welcomeOverlay">
+  <div class="mini-modal welcome-modal">
+    <div class="mini-title">Welcome to Reel Board</div>
+    <div class="mini-msg welcome-steps">
+      <div class="welcome-step"><b>1.</b> Tap a stage on the left — Script, Voice Over, etc. — to add it to the board.</div>
+      <div class="welcome-step"><b>2.</b> Drag a card by its ⠿ handle to move it. Drag from the dot on its right edge to another card to connect them in order.</div>
+      <div class="welcome-step"><b>3.</b> Everything saves automatically as you type — no save button needed.</div>
+      <div class="welcome-step"><b>4.</b> When you're ready, use <b>Export steps (PDF)</b> to hand off the plan, or <b>Backup this project</b> to keep a copy.</div>
+    </div>
+    <div class="mini-actions">
+      <button class="btn primary" id="welcomeOkBtn">Got it, let's go</button>
+    </div>
+  </div>
+</div>
+
+<div class="mini-overlay" id="backupPickerOverlay">
+  <div class="mini-modal backup-picker-modal">
+    <div class="mini-title">Choose what to back up</div>
+    <div class="mini-msg" style="display:block;">Pick one, several, or all of your projects.</div>
+    <div class="backup-picker-actions-row">
+      <button type="button" class="backup-picker-link" id="backupSelectAllBtn">Select all</button>
+      <button type="button" class="backup-picker-link" id="backupSelectNoneBtn">Select none</button>
+    </div>
+    <div class="backup-picker-list" id="backupPickerList"></div>
+    <div class="mini-actions">
+      <button class="btn" id="backupPickerCancelBtn">Cancel</button>
+      <button class="btn primary" id="backupPickerSaveBtn">Backup selected</button>
+    </div>
+  </div>
+</div>
+
+<div class="mini-overlay" id="settingsOverlay">
+  <div class="mini-modal settings-modal">
+    <div class="mini-title">Settings</div>
+
+    <div class="settings-section">
+      <span class="field-label">Your name</span>
+      <input type="text" id="settingsName" placeholder="Shown on exported PDFs" />
+    </div>
+
+    <div class="settings-section">
+      <span class="field-label">Appearance</span>
+      <div class="settings-theme-row">
+        <button type="button" class="settings-theme-btn" id="themeDarkBtn">🌙 Dark</button>
+        <button type="button" class="settings-theme-btn" id="themeLightBtn">☀️ Light</button>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <span class="field-label">Accent color</span>
+      <div class="settings-color-row">
+        <input type="color" class="settings-color-input" id="colorAccent" />
+        <span class="settings-color-label">Buttons, highlights, cables</span>
+      </div>
+    </div>
+
+    <button type="button" class="details-toggle settings-group-toggle" id="stageColorsToggle">▾ Stage colors (6)</button>
+    <div class="node-details settings-color-group" id="stageColorsGroup">
+      <div class="settings-color-row"><input type="color" class="settings-color-input" data-stage="voiceover" /><span class="settings-color-label">Voice Over</span></div>
+      <div class="settings-color-row"><input type="color" class="settings-color-input" data-stage="videographer" /><span class="settings-color-label">Videographer</span></div>
+      <div class="settings-color-row"><input type="color" class="settings-color-input" data-stage="photographer" /><span class="settings-color-label">Photographer</span></div>
+      <div class="settings-color-row"><input type="color" class="settings-color-input" data-stage="graphic" /><span class="settings-color-label">Graphic Design</span></div>
+      <div class="settings-color-row"><input type="color" class="settings-color-input" data-stage="motion" /><span class="settings-color-label">Motion Graphic</span></div>
+      <div class="settings-color-row"><input type="color" class="settings-color-input" data-stage="social" /><span class="settings-color-label">Social Media</span></div>
+    </div>
+
+    <button type="button" class="details-toggle settings-group-toggle" id="statusColorsToggle">▾ Status border colors (5)</button>
+    <div class="node-details settings-color-group" id="statusColorsGroup">
+      <div class="settings-color-row"><input type="color" class="settings-color-input" data-status="progress" /><span class="settings-color-label">In progress</span></div>
+      <div class="settings-color-row"><input type="color" class="settings-color-input" data-status="review" /><span class="settings-color-label">Review</span></div>
+      <div class="settings-color-row"><input type="color" class="settings-color-input" data-status="approved" /><span class="settings-color-label">Approved</span></div>
+      <div class="settings-color-row"><input type="color" class="settings-color-input" data-status="done" /><span class="settings-color-label">Done</span></div>
+      <div class="settings-color-row"><input type="color" class="settings-color-input" data-status="blocked" /><span class="settings-color-label">Blocked</span></div>
+    </div>
+
+    <div class="mini-actions">
+      <button class="btn" id="settingsResetBtn">Reset to defaults</button>
+      <button class="btn primary" id="settingsCloseBtn">Done</button>
+    </div>
+  </div>
+</div>
+
 <script>
 (function(){
   const STAGES = {
@@ -603,6 +756,78 @@
   const PLATFORM_OPTIONS = ["Instagram","TikTok","Facebook","YouTube","Snapchat","X / Twitter","LinkedIn","Other"];
   const POST_TYPE_OPTIONS = ["Reel","Story","Post","Carousel","Live","Short","Other"];
   const STATUS_OPTIONS = ["Not started","In progress","Review","Approved","Done","Blocked"];
+  const STATUS_COLORS = {
+    "In progress": "var(--status-progress)",
+    "Review": "var(--status-review)",
+    "Approved": "var(--status-approved)",
+    "Done": "var(--status-done)",
+    "Blocked": "var(--status-blocked)",
+    // "Not started" is intentionally left out — it falls back to the
+    // card's normal neutral border, so only statuses that mean something
+    // has actually happened get a colored border.
+  };
+  function applyStatusColor(el, status){
+    const color = STATUS_COLORS[status];
+    if (color) el.style.setProperty('--status-color', color);
+    else el.style.removeProperty('--status-color');
+  }
+
+  // ---------- settings: profile name, light/dark theme, custom colors ----------
+  const DEFAULT_COLORS = {
+    gold:"#f2b441", red:"#e5595d", blue:"#5ec8f2", violet:"#b18cff",
+    green:"#4ade80", orange:"#ff9466", pink:"#f26fa8",
+    "status-progress":"#f2b441", "status-review":"#b18cff", "status-approved":"#5ec8f2",
+    "status-done":"#4ade80", "status-blocked":"#e5595d"
+  };
+  let currentSettings = { name:'', theme:'dark', colors: Object.assign({}, DEFAULT_COLORS) };
+
+  function applySettings(settings){
+    const root = document.documentElement;
+    root.classList.toggle('theme-light', settings.theme === 'light');
+    Object.entries(settings.colors || {}).forEach(([key, val])=>{
+      root.style.setProperty('--' + key, val);
+    });
+  }
+
+  async function loadSettings(){
+    try{
+      const r = await store.get('settings');
+      if (r && r.value){
+        const parsed = JSON.parse(r.value);
+        currentSettings = {
+          name: parsed.name || '',
+          theme: parsed.theme === 'light' ? 'light' : 'dark',
+          colors: Object.assign({}, DEFAULT_COLORS, parsed.colors || {}),
+        };
+      }
+    }catch(e){ /* fall back to defaults */ }
+    applySettings(currentSettings);
+  }
+
+  async function saveSettings(){
+    applySettings(currentSettings);
+    try{ await store.set('settings', JSON.stringify(currentSettings)); }catch(e){}
+  }
+
+  function populateSettingsUI(){
+    document.getElementById('settingsName').value = currentSettings.name;
+    document.getElementById('themeDarkBtn').classList.toggle('active', currentSettings.theme === 'dark');
+    document.getElementById('themeLightBtn').classList.toggle('active', currentSettings.theme === 'light');
+    document.getElementById('colorAccent').value = currentSettings.colors.gold;
+    document.querySelectorAll('.settings-color-input[data-stage]').forEach(input=>{
+      const stage = input.dataset.stage;
+      const colorKey = { voiceover:'red', videographer:'blue', photographer:'violet', graphic:'green', motion:'orange', social:'pink' }[stage];
+      input.value = currentSettings.colors[colorKey];
+    });
+    document.querySelectorAll('.settings-color-input[data-status]').forEach(input=>{
+      const colorKey = 'status-' + input.dataset.status;
+      input.value = currentSettings.colors[colorKey];
+    });
+    document.getElementById('stageColorsGroup').classList.remove('open');
+    document.getElementById('stageColorsToggle').textContent = '▾ Stage colors (6)';
+    document.getElementById('statusColorsGroup').classList.remove('open');
+    document.getElementById('statusColorsToggle').textContent = '▾ Status border colors (5)';
+  }
   const TYPE_OPTIONS = ["In-house","Freelance"];
 
   const TASK_TEMPLATES = {
@@ -1185,6 +1410,7 @@
     el.style.left = node.x + 'px';
     el.style.top = node.y + 'px';
     el.style.setProperty('--stage-color', def.color);
+    applyStatusColor(el, node.status);
     el.dataset.id = node.id;
 
     el.innerHTML = `
@@ -1212,43 +1438,46 @@
           <textarea placeholder="${escapeAttr(def.contentPlaceholder)}">${escapeHtml(node.content)}</textarea>
         </div>
         ${node.tasks ? '<div class="tasklist"></div>' : ''}
-        ${node.type === 'social' ? `
-        <div class="row2">
-          <div>
-            <span class="field-label">Platform</span>
-            <select class="platform"></select>
+        <button type="button" class="details-toggle">▾ Details (assign, status, deadline…)</button>
+        <div class="node-details">
+          ${node.type === 'social' ? `
+          <div class="row2">
+            <div>
+              <span class="field-label">Platform</span>
+              <select class="platform"></select>
+            </div>
+            <div>
+              <span class="field-label">Post type</span>
+              <select class="post-type"></select>
+            </div>
+          </div>` : ''}
+          <div class="row2">
+            <div>
+              <span class="field-label">Assigned to</span>
+              <input type="text" class="assignee" placeholder="Name" value="${escapeAttr(node.assignee)}" />
+            </div>
+            <div>
+              <span class="field-label">Type</span>
+              <select class="role"></select>
+            </div>
+          </div>
+          <div class="row2">
+            <div>
+              <span class="field-label">Status</span>
+              <select class="status status-pill"></select>
+            </div>
+            <div>
+              <span class="field-label">Duration</span>
+              <input type="text" class="duration" placeholder="e.g. 0:30" value="${escapeAttr(node.duration || '')}" />
+            </div>
           </div>
           <div>
-            <span class="field-label">Post type</span>
-            <select class="post-type"></select>
-          </div>
-        </div>` : ''}
-        <div class="row2">
-          <div>
-            <span class="field-label">Assigned to</span>
-            <input type="text" class="assignee" placeholder="Name" value="${escapeAttr(node.assignee)}" />
-          </div>
-          <div>
-            <span class="field-label">Type</span>
-            <select class="role"></select>
-          </div>
-        </div>
-        <div class="row2">
-          <div>
-            <span class="field-label">Status</span>
-            <select class="status status-pill"></select>
-          </div>
-          <div>
-            <span class="field-label">Duration</span>
-            <input type="text" class="duration" placeholder="e.g. 0:30" value="${escapeAttr(node.duration || '')}" />
-          </div>
-        </div>
-        <div>
-          <span class="field-label">${node.type === 'social' ? 'Post date & time' : 'Deadline'}</span>
-          <input type="${node.type === 'social' ? 'datetime-local' : 'date'}" class="deadline" value="${node.type === 'social' ? toDateTimeInputValue(node.deadline) : toDateInputValue(node.deadline)}" />
-          <div class="cal-row">
-            <button type="button" class="cal-btn gcal-btn">📅 Google Cal</button>
-            <button type="button" class="cal-btn ics-btn">⬇ .ics</button>
+            <span class="field-label">${node.type === 'social' ? 'Post date & time' : 'Deadline'}</span>
+            <input type="${node.type === 'social' ? 'datetime-local' : 'date'}" class="deadline" value="${node.type === 'social' ? toDateTimeInputValue(node.deadline) : toDateInputValue(node.deadline)}" />
+            <div class="cal-row">
+              <button type="button" class="cal-btn gcal-btn">📅 Google Cal</button>
+              <button type="button" class="cal-btn ics-btn">⬇ .ics</button>
+            </div>
           </div>
         </div>
       </div>
@@ -1302,7 +1531,11 @@
     });
     el.querySelector('.assignee').addEventListener('input', e=>{ node.assignee = e.target.value; scheduleSave(); });
     roleSel.addEventListener('change', e=>{ node.role = e.target.value; scheduleSave(); });
-    statusSel.addEventListener('change', e=>{ node.status = e.target.value; scheduleSave(); });
+    statusSel.addEventListener('change', e=>{
+      node.status = e.target.value;
+      applyStatusColor(el, node.status);
+      scheduleSave();
+    });
     if (platformSel) platformSel.addEventListener('change', e=>{ node.platform = e.target.value; scheduleSave(); });
     if (postTypeSel) postTypeSel.addEventListener('change', e=>{ node.postType = e.target.value; scheduleSave(); });
     el.querySelector('.deadline').addEventListener('input', e=>{
@@ -1326,9 +1559,23 @@
       addToICS(title, node.deadline, node.content, reel ? reel.location : '');
     });
     el.querySelector('.node-kill').addEventListener('click', ()=> removeNode(node.id));
+    el.querySelector('.details-toggle').addEventListener('click', e=>{
+      const details = el.querySelector('.node-details');
+      const isOpen = details.classList.toggle('open');
+      e.target.textContent = isOpen ? '▴ Hide details' : '▾ Details (assign, status, deadline…)';
+    });
 
     if (node.tasks){
       renderTasklist(el.querySelector('.tasklist'), node);
+    }
+
+    // If this card already has real details filled in (an existing project
+    // being reopened), show them by default — collapsing only makes sense
+    // for a fresh, empty card so nothing already-important gets hidden.
+    const hasDetails = node.assignee || node.duration || node.deadline || node.platform || node.postType;
+    if (hasDetails){
+      el.querySelector('.node-details').classList.add('open');
+      el.querySelector('.details-toggle').textContent = '▴ Hide details';
     }
 
     // dragging — Pointer Events cover mouse, touch, and pen with one API,
@@ -1726,6 +1973,9 @@
   function buildPrintHtml(reel){
     const order = topoOrder(reel);
     let html = `<h1>${escapePrint(reel.name)}</h1>`;
+    if (currentSettings.name){
+      html += `<div class="pv-meta" style="margin-bottom:4px;">Prepared by ${escapePrint(currentSettings.name)}</div>`;
+    }
     if (reel.location || reel.date || reel.beat || reel.targetRuntime){
       html += `<div class="pv-meta">`;
       if (reel.location) html += `<div><strong>Location:</strong> <a href="${buildGoogleMapsUrl(reel.location)}" target="_blank" rel="noopener">${escapePrint(reel.location)}</a></div>`;
@@ -2023,20 +2273,53 @@
 
   // ---------- backup / restore (a real safety net — everything on this
   // device, in one file you keep yourself, separate from the PDF export) ----------
-  document.getElementById('backupBtn').addEventListener('click', async ()=>{
+  document.getElementById('backupBtn').addEventListener('click', ()=>{
+    if (reels.length === 0){ showAlert('Nothing to back up', 'Add a project first.'); return; }
+    const list = document.getElementById('backupPickerList');
+    list.innerHTML = '';
+    reels.forEach(r=>{
+      const row = document.createElement('label');
+      row.className = 'backup-picker-row';
+      row.innerHTML = `<input type="checkbox" value="${r.id}" ${r.id === activeId ? 'checked' : ''}/><span></span>`;
+      row.querySelector('span').textContent = r.name;
+      list.appendChild(row);
+    });
+    document.getElementById('backupPickerOverlay').classList.add('open');
+  });
+
+  document.getElementById('backupSelectAllBtn').addEventListener('click', ()=>{
+    document.querySelectorAll('#backupPickerList input[type=checkbox]').forEach(cb => cb.checked = true);
+  });
+  document.getElementById('backupSelectNoneBtn').addEventListener('click', ()=>{
+    document.querySelectorAll('#backupPickerList input[type=checkbox]').forEach(cb => cb.checked = false);
+  });
+  document.getElementById('backupPickerCancelBtn').addEventListener('click', ()=>{
+    document.getElementById('backupPickerOverlay').classList.remove('open');
+  });
+
+  document.getElementById('backupPickerSaveBtn').addEventListener('click', async ()=>{
+    const checked = Array.from(document.querySelectorAll('#backupPickerList input[type=checkbox]:checked'));
+    if (checked.length === 0){ await showAlert('Nothing selected', 'Pick at least one project to back up.'); return; }
+    const selectedIds = new Set(checked.map(cb => cb.value));
+    const selectedReels = reels.filter(r => selectedIds.has(r.id));
+
     const payload = {
       app: 'reel-board', version: 1,
       exportedAt: new Date().toISOString(),
-      reels: reels,
+      reels: selectedReels,
     };
     const stamp = new Date().toISOString().slice(0, 10);
-    const reel = activeReel();
-    // Backs up every project, but names the file after whichever one is
-    // currently open so it's identifiable — "all projects" if there's more
-    // than one, so it's clear it's not just that single project.
-    const namePart = reels.length > 1 && reel ? `${reel.name}-and-others` : (reel ? reel.name : 'projects');
-    const safeName = namePart.replace(/[^\w\- ]+/g, '').trim().slice(0, 60) || 'projects';
-    const filename = `reel-board-backup-${safeName}-${stamp}.json`;
+    let namePart;
+    if (selectedReels.length === reels.length && reels.length > 1){
+      namePart = `ALL-${reels.length}-projects`;
+    } else if (selectedReels.length === 1){
+      namePart = selectedReels[0].name.replace(/[^\w\- ]+/g, '').trim().slice(0, 60) || 'project';
+    } else {
+      namePart = `${selectedReels.length}-projects`;
+    }
+    const filename = `reel-board-backup-${namePart}-${stamp}.json`;
+
+    document.getElementById('backupPickerOverlay').classList.remove('open');
     await saveFile(filename, JSON.stringify(payload, null, 2), 'application/json', { 'application/json': ['.json'] });
   });
 
@@ -2089,19 +2372,99 @@
 
   // ---------- mobile: collapsible "More" actions + shoot info bar ----------
   document.getElementById('moreToggleBtn').addEventListener('click', ()=>{
-    document.getElementById('topbarMore').classList.toggle('open');
+    const panel = document.getElementById('topbarMore');
+    const btn = document.getElementById('moreToggleBtn');
+    const isOpen = panel.classList.toggle('open');
+    btn.textContent = isOpen ? '▲ Less' : '⋯ More';
   });
   document.getElementById('shootbarToggle').addEventListener('click', ()=>{
-    document.getElementById('shootbar').classList.toggle('open');
-    document.getElementById('shootbarToggle').classList.toggle('open');
+    const bar = document.getElementById('shootbar');
+    const toggle = document.getElementById('shootbarToggle');
+    const isOpen = bar.classList.toggle('open');
+    toggle.classList.toggle('open', isOpen);
+    const hint = document.getElementById('shootbarToggleHint');
+    if (hint) hint.textContent = isOpen ? 'tap to minimize' : 'tap to expand';
   });
 
   // ---------- init ----------
+  document.getElementById('welcomeOkBtn').addEventListener('click', ()=>{
+    document.getElementById('welcomeOverlay').classList.remove('open');
+  });
+
+  // ---------- settings panel ----------
+  document.getElementById('settingsBtn').addEventListener('click', ()=>{
+    populateSettingsUI();
+    document.getElementById('settingsOverlay').classList.add('open');
+  });
+  document.getElementById('settingsCloseBtn').addEventListener('click', ()=>{
+    document.getElementById('settingsOverlay').classList.remove('open');
+  });
+  document.getElementById('settingsName').addEventListener('input', e=>{
+    currentSettings.name = e.target.value;
+    saveSettings();
+  });
+  document.getElementById('themeDarkBtn').addEventListener('click', ()=>{
+    currentSettings.theme = 'dark';
+    saveSettings();
+    populateSettingsUI();
+  });
+  document.getElementById('themeLightBtn').addEventListener('click', ()=>{
+    currentSettings.theme = 'light';
+    saveSettings();
+    populateSettingsUI();
+  });
+  document.getElementById('colorAccent').addEventListener('input', e=>{
+    currentSettings.colors.gold = e.target.value;
+    saveSettings();
+  });
+  document.querySelectorAll('.settings-color-input[data-stage]').forEach(input=>{
+    const stage = input.dataset.stage;
+    const colorKey = { voiceover:'red', videographer:'blue', photographer:'violet', graphic:'green', motion:'orange', social:'pink' }[stage];
+    input.addEventListener('input', e=>{
+      currentSettings.colors[colorKey] = e.target.value;
+      saveSettings();
+    });
+  });
+  document.querySelectorAll('.settings-color-input[data-status]').forEach(input=>{
+    const colorKey = 'status-' + input.dataset.status;
+    input.addEventListener('input', e=>{
+      currentSettings.colors[colorKey] = e.target.value;
+      saveSettings();
+    });
+  });
+  document.getElementById('stageColorsToggle').addEventListener('click', e=>{
+    const isOpen = document.getElementById('stageColorsGroup').classList.toggle('open');
+    e.target.textContent = isOpen ? '▴ Stage colors (6)' : '▾ Stage colors (6)';
+  });
+  document.getElementById('statusColorsToggle').addEventListener('click', e=>{
+    const isOpen = document.getElementById('statusColorsGroup').classList.toggle('open');
+    e.target.textContent = isOpen ? '▴ Status border colors (5)' : '▾ Status border colors (5)';
+  });
+  document.getElementById('settingsResetBtn').addEventListener('click', async ()=>{
+    const ok = await showConfirm('Reset appearance?', 'This resets your name, theme, and all colors back to defaults.');
+    if (!ok) return;
+    currentSettings = { name:'', theme:'dark', colors: Object.assign({}, DEFAULT_COLORS) };
+    await saveSettings();
+    populateSettingsUI();
+  });
+
   (async function init(){
     buildRail();
+    await loadSettings();
     await loadAll();
     buildReelSelect();
     renderCanvas();
+
+    // Show a one-time welcome the very first time, so someone new isn't
+    // dropped straight into a wall of buttons. Uses the same store as
+    // everything else, so it stays "seen" across devices where storage syncs.
+    try{
+      const seen = await store.get('welcome-seen');
+      if (!seen){
+        document.getElementById('welcomeOverlay').classList.add('open');
+        await store.set('welcome-seen', 'true');
+      }
+    }catch(e){ /* not critical if this fails */ }
   })();
 })();
 
