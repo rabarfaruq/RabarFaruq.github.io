@@ -133,6 +133,12 @@
   .node-add:hover{border-color:var(--stage-color,var(--gold));transform:translateX(2px);}
   .swatch{width:9px;height:9px;border-radius:2px;flex-shrink:0;background:var(--stage-color);}
 
+  .rail-drag-ghost{
+    position:fixed;z-index:300;pointer-events:none;width:150px;
+    opacity:.92;box-shadow:0 10px 26px rgba(0,0,0,.55);transform:scale(1.04) rotate(-1deg);
+  }
+  .canvas-wrap.drop-target{box-shadow:inset 0 0 0 2px var(--gold);}
+
   .canvas-wrap{flex:1;position:relative;overflow:auto;background:
     radial-gradient(circle, var(--border-soft) 1px, transparent 1px) 0 0/22px 22px, var(--bg-canvas);
   }
@@ -1146,6 +1152,72 @@
   }
 
   // ---------- rail ----------
+  function makeRailButtonDraggable(btn, type){
+    // Plain tap/click always adds at the default position — this covers
+    // touch taps (so the mobile rail's horizontal swipe-to-scroll keeps
+    // working normally) and a simple mouse click with no real drag.
+    let suppressNextClick = false;
+    btn.addEventListener('click', ()=>{
+      if (suppressNextClick){ suppressNextClick = false; return; }
+      addNode(type);
+    });
+
+    btn.addEventListener('pointerdown', (e)=>{
+      // Skip the drag-to-position behavior for touch specifically, so a
+      // finger swiping across the rail to scroll it isn't mistaken for a
+      // drag — touch users still add cards via the tap above, then use the
+      // card's own drag handle to reposition it, same as always.
+      if (e.pointerType === 'touch') return;
+
+      const startX = e.clientX, startY = e.clientY;
+      let dragging = false;
+      let ghost = null;
+      try{ btn.setPointerCapture(e.pointerId); }catch(err){}
+
+      function onMove(ev){
+        const dx = ev.clientX - startX, dy = ev.clientY - startY;
+        if (!dragging && Math.hypot(dx, dy) > 6){
+          dragging = true;
+          ghost = btn.cloneNode(true);
+          ghost.classList.add('rail-drag-ghost');
+          document.body.appendChild(ghost);
+          els.canvasWrap.classList.add('drop-target');
+        }
+        if (dragging && ghost){
+          ghost.style.left = (ev.clientX + 14) + 'px';
+          ghost.style.top = (ev.clientY + 14) + 'px';
+        }
+      }
+      function onUp(ev){
+        btn.removeEventListener('pointermove', onMove);
+        btn.removeEventListener('pointerup', onUp);
+        btn.removeEventListener('pointercancel', onUp);
+        try{ btn.releasePointerCapture(e.pointerId); }catch(err){}
+        if (ghost) ghost.remove();
+        els.canvasWrap.classList.remove('drop-target');
+
+        if (dragging){
+          suppressNextClick = true; // a real drag happened — don't also add via the click that follows
+          const wrapRect = els.canvasWrap.getBoundingClientRect();
+          const overCanvas = ev.clientX >= wrapRect.left && ev.clientX <= wrapRect.right &&
+                              ev.clientY >= wrapRect.top && ev.clientY <= wrapRect.bottom;
+          if (overCanvas){
+            const canvasRect = els.canvas.getBoundingClientRect();
+            const x = Math.max(0, ev.clientX - canvasRect.left - 145);
+            const y = Math.max(0, ev.clientY - canvasRect.top - 22);
+            addNode(type, { x, y });
+          }
+          // dropped somewhere outside the canvas — cancelled, nothing added
+        }
+        // not dragging — do nothing here; the natural click event (handled
+        // above) takes care of the plain-click case exactly once.
+      }
+      btn.addEventListener('pointermove', onMove);
+      btn.addEventListener('pointerup', onUp);
+      btn.addEventListener('pointercancel', onUp);
+    });
+  }
+
   function buildRail(){
     Object.entries(STAGES).forEach(([key, def])=>{
       if (key === 'custom') return;
@@ -1153,7 +1225,7 @@
       btn.className = 'node-add';
       btn.style.setProperty('--stage-color', def.color);
       btn.innerHTML = `<span class="swatch"></span> ${def.label}`;
-      btn.onclick = ()=> addNode(key);
+      makeRailButtonDraggable(btn, key);
       els.rail.appendChild(btn);
     });
     const divider = document.createElement('div');
@@ -1164,7 +1236,7 @@
     customBtn.className = 'node-add';
     customBtn.style.setProperty('--stage-color', STAGES.custom.color);
     customBtn.innerHTML = `<span class="swatch"></span> Custom stage`;
-    customBtn.onclick = ()=> addNode('custom');
+    makeRailButtonDraggable(customBtn, 'custom');
     els.rail.appendChild(customBtn);
   }
 
@@ -1180,7 +1252,7 @@
   }
 
   // ---------- nodes ----------
-  function addNode(type){
+  function addNode(type, dropPos){
     const reel = activeReel();
     const def = STAGES[type];
     const count = reel.nodes.length;
@@ -1188,8 +1260,8 @@
       id: uid('node'),
       type,
       title: def.label,
-      x: 60 + (count % 5) * 260,
-      y: 40 + Math.floor(count / 5) * 210,
+      x: dropPos ? dropPos.x : 60 + (count % 5) * 260,
+      y: dropPos ? dropPos.y : 40 + Math.floor(count / 5) * 210,
       assignee: '',
       role: 'In-house',
       status: 'Not started',
